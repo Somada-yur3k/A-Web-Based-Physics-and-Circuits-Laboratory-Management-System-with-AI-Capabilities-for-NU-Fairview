@@ -1,19 +1,21 @@
 # Laboratory Management System
 
-Next.js App Router + React + TypeScript application scaffold. This is independent of the sibling `Documentation` repository.
+Next.js App Router + React + TypeScript + Tailwind CSS v4 application scaffold. This is independent of the sibling `Documentation` repository.
+
+Tailwind is integrated through `@tailwindcss/postcss` in `postcss.config.mjs`. Shared design tokens are defined with `@theme` in `src/app/globals.css`; page styling uses Tailwind utility classes. No Tailwind CDN is used.
 
 ## Run locally
 
 From `PBL1/System`:
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
 Open http://localhost:3000. Use `npm run build` for a production build, `npm start` to serve it, and `npm run typecheck` for TypeScript checks.
 
-Initial dependency download stalled and was stopped. Installation and build verification are not complete yet. The first successful `npm install` will generate `package-lock.json`; commit that lockfile and use `npm ci` for subsequent clean installs.
+Dependencies are installed and the production build and TypeScript checks pass. `package-lock.json` records the resolved dependency versions; use `npm ci` for reproducible clean installs.
 
 ## New repository
 
@@ -31,4 +33,10 @@ For a separate Vercel project, import that new repository using the Next.js pres
 
 ## Scope
 
-Only a starter page exists. No authentication, database, production role permissions or laboratory processes are implemented. Do not copy documentation-editor Supabase credentials into this application: the editor database stores diagram drafts, not laboratory transactions. Keep future secrets in untracked `.env.local` files.
+The home page contains the responsive NU Fairview login UI, with required fields, a password visibility toggle, and keyboard focus states. Three fixed demo logins open the Head Laboratory, Faculty, and Class Representative dashboards. See [DEMO-ACCOUNTS.md](DEMO-ACCOUNTS.md) for credentials and a walkthrough. Temporary server sessions support logout and role checks; Supabase, production authentication, and live laboratory processes are not connected. Do not copy documentation-editor Supabase credentials into this application: the editor database stores diagram drafts, not laboratory transactions. Keep future secrets in untracked `.env.local` files.
+
+The crest is displayed from `public/nu-fairview-brand.png`, an existing branding asset from the user's `126th-Official-PPT-Template-NU-Fairview.pptx`. CSS shows only the crest region of that asset.
+
+The Admin / Head Laboratory Account Management preview is available at `/dashboard/admin`. It includes Faculty and Class Representative accounts, search, status filtering, pagination, and create/edit/delete dialogs using demo data. The other Admin sidebar pages have blank content areas. Changes reset on reload; Supabase account provisioning and access control are pending. See `src/features/accounts/README.md` for integration notes.
+
+Faculty (`/dashboard/faculty`) and Class Representative (`/dashboard/classrep`) dashboard previews include summary cards, upcoming schedules, recent records, request details, and quick actions. Their other sidebar pages are blank. See `src/features/lab-dashboard/README.md` for data and routing notes.
