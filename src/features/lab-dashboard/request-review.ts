@@ -1,8 +1,9 @@
 import { areParticipantDetailsValid, type RequestType, type StudentDetails } from "./request-participants";
 import { demoAssignedClasses, scheduleDraftError, type RequestLaboratory, type RequestScheduleType, type ScheduleDraft } from "./room-availability";
+import { findCatalogItem } from "./equipment-catalog";
 
 export type ApprovalRecipient = "FACULTY" | "DEAN";
-export type RequestedItem = { rowId: number; kind: "Equipment" | "Material"; name: string; quantity: number };
+export type RequestedItem = { rowId: number; catalogId?: string; kind: "Equipment" | "Material"; name: string; quantity: number };
 export type ServiceRequestDraft = {
   laboratory: RequestLaboratory;
   requestType: RequestType | null;
@@ -14,9 +15,18 @@ export type ServiceRequestDraft = {
   approver: ApprovalRecipient | null;
 };
 
-export function requestedItemsError(items: readonly RequestedItem[], notes: string): string | null {
+export function requestedItemsError(items: readonly RequestedItem[], notes: string, laboratory?: RequestLaboratory): string | null {
   if (notes.length > 1000) return "Keep notes within 1,000 characters.";
   if (items.some((item) => !["Equipment", "Material"].includes(item.kind) || !item.name.trim() || item.name.length > 120 || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 999)) return "Enter an item name and a whole-number quantity from 1 to 999 for every item, or remove unused rows.";
+  const selected = new Set<string>();
+  for (const item of items) {
+    if (item.catalogId === undefined) continue;
+    const source = findCatalogItem(item.catalogId);
+    if (!source || (laboratory && !source.laboratories.includes(laboratory)) || source.kind !== item.kind || source.name !== item.name) return "Select catalogue items from your chosen laboratory.";
+    if (selected.has(source.id)) return "Use one quantity entry for each catalogue item.";
+    selected.add(source.id);
+    if (source.stock < 1 || item.quantity > source.stock) return `${source.name}: request up to ${source.stock} ${source.unit} from the sample stock, or remove this item.`;
+  }
   return null;
 }
 
@@ -34,7 +44,7 @@ export function serviceRequestError(draft: ServiceRequestDraft): string | null {
   if (draft.scheduleType !== "ON_SCHEDULE" && draft.scheduleType !== "OUT_OF_SCHEDULE") return "Select a schedule type in Step 3.";
   const scheduleError = scheduleDraftError(draft.laboratory, draft.scheduleType, draft.schedule);
   if (scheduleError) return scheduleError;
-  const itemsError = requestedItemsError(draft.items, draft.notes);
+  const itemsError = requestedItemsError(draft.items, draft.notes, draft.laboratory);
   if (itemsError) return itemsError;
   if (!approvalRecipient(draft)) return "Choose Faculty or Dean for approval.";
   return null;

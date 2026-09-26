@@ -1,5 +1,7 @@
-import DashboardPlaceholder from "@/components/dashboard/dashboard-placeholder";
+import RequestQueue from "@/features/demo-requests/request-queue";
+import { requireDemoRole } from "@/features/demo-auth/session";
 
-export default function DeanDashboard() {
-  return <DashboardPlaceholder role="Dean" />;
+export default async function DeanDashboard() {
+  await requireDemoRole("dean");
+  return <RequestQueue />;
 }

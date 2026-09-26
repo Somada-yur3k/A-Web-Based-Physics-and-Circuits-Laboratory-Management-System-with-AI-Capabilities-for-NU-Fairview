@@ -1,0 +1,13 @@
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const workspace=path.resolve(__dirname,'..'),job=path.join(workspace,'tmp/pdfs/erd-spacing'),source=path.join(job,'Documentation'),target=fs.realpathSync(path.resolve(workspace,'../Documentation')),backup=path.join(job,'backup');
+const hash=file=>crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+function safe(root,file){const result=path.resolve(root,file);assert(!path.isAbsolute(file)&&!file.split(/[\\/]/).includes('..')&&result.toLowerCase().startsWith((root+path.sep).toLowerCase()));let parent=path.dirname(result);while(!fs.existsSync(parent))parent=path.dirname(parent);const actual=fs.realpathSync(parent).toLowerCase();assert(actual===root.toLowerCase()||actual.startsWith((root+path.sep).toLowerCase()));if(fs.existsSync(result))assert(fs.lstatSync(result).isFile());return result;}
+assert.equal(hash(safe(source,'assets/erd/model.json')),hash(safe(target,'assets/erd/model.json')),'Only layout changes, preserving the schema');
+const pdf=JSON.parse(fs.readFileSync(path.join(job,'final.json'),'utf8'));assert.equal(pdf.pages.length,1);assert(Math.abs(pdf.pages[0].dimensions[2]-595.28)<1&&Math.abs(pdf.pages[0].dimensions[3]-841.89)<1);
+const files=['assets/erd/a4-render.js','assets/erd/render.js','assets/erd/print-render.js','assets/erd/artwork.js','assets/erd/geometry.json','assets/erd/erd-a4-complete.svg','assets/erd/erd-complete.svg','assets/erd/erd-a4-complete.png','assets/erd/erd-complete.png','assets/erd/erd-a4.pdf','assets/erd/erd.pdf','assets/erd/erd-a4-readable.pdf','output/pdf/erd-a4-readable.pdf','integrations/erd/build-connected.cjs'];
+const manifest=files.map(file=>({file,before:hash(safe(target,file)),after:hash(safe(source,file))}));
+fs.mkdirSync(backup,{recursive:true});
+for(const entry of manifest){const saved=safe(backup,entry.file);fs.mkdirSync(path.dirname(saved),{recursive:true});if(fs.existsSync(saved))assert.equal(hash(saved),entry.before,'Prior backup is immutable');else fs.copyFileSync(safe(target,entry.file),saved);}
+for(const entry of manifest){assert.equal(hash(safe(target,entry.file)),entry.before,'Preserve any newer edits');fs.copyFileSync(safe(source,entry.file),safe(target,entry.file));assert.equal(hash(safe(target,entry.file)),entry.after);}
+fs.copyFileSync(safe(source,'assets/erd/erd-a4.pdf'),path.join(workspace,'output/pdf/erd-system-aligned-a4.pdf'));
+fs.writeFileSync(path.join(job,'published.json'),JSON.stringify({at:new Date().toISOString(),files:manifest},null,2));console.log('Published compact lower-table spacing and larger cardinalities. All 14 artifacts verified; schema unchanged; PDF remains one A4 page.');

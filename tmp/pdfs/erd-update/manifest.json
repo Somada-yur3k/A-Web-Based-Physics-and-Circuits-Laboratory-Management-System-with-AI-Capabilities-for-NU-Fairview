@@ -1,0 +1,254 @@
+{
+  "source": "C:\\Users\\Eurika\\Desktop\\PBL1\\Documentation",
+  "stage": "C:\\Users\\Eurika\\Desktop\\PBL1\\System\\tmp\\pdfs\\erd-update\\Documentation",
+  "files": [
+    {
+      "file": "Docs.html",
+      "original": "6c9532578f713ca84f5b325d3cede15f6af70de94eb8831c0b9e053612c24360"
+    },
+    {
+      "file": "README.md",
+      "original": "b97daad37d2745ef41c14201183f07acb709c43bd130a82f515f0e484f237ca5"
+    },
+    {
+      "file": "ERD.html",
+      "original": "944c26c4657fafeb4a0174975edcf4bf066ffe3c214d84e5e807b204bff591d4"
+    },
+    {
+      "file": "ERD-A4.html",
+      "original": "1ee5e7e17b6f75b417153569da40fd5887e8471d0445248d8d77ebf6504bd0eb"
+    },
+    {
+      "file": "ERD-PRINT.html",
+      "original": "555eb95cb53b1e3a8339327abd3b45759481d27087dddff02d7dbf4d7d875cdc"
+    },
+    {
+      "file": "ERD.md",
+      "original": "03f3b19f1fee2c6aaede62766ae216041d8f0671a8263a7b58b1f5575d5cf214"
+    },
+    {
+      "file": "ERD-TABLES.md",
+      "original": "2d5cb71e327b5a572fd724245e896e4a31e15376b20d24368f7d42e5ec94cbc5"
+    },
+    {
+      "file": "ERD-RELATIONSHIPS.md",
+      "original": "e94f3d5898de37722e9d894f7fbce0391439d5e2d560ef3a7b5c3acc87a27f66"
+    },
+    {
+      "file": "assets/erd/model.js",
+      "original": "d816c0e7f130041cea9ce1327769038201fc41421945bdedfcae355ab3a33595"
+    },
+    {
+      "file": "assets/erd/model.json",
+      "original": null
+    },
+    {
+      "file": "assets/erd/DESIGN.md",
+      "original": "2ea92485c38f89814553ce197c83812d6b63214d10664e4326d730440e15f008"
+    },
+    {
+      "file": "assets/erd/render.js",
+      "original": "be712346b9615ea4b97447f8e4bc637b0946fb6237ebbe3cd083dc99d67f31f4"
+    },
+    {
+      "file": "assets/erd/a4-render.js",
+      "original": "dea77f16c40c5063ae03df2888177fd6a8a2770d39eeb00cc5caca92fb2c6b67"
+    },
+    {
+      "file": "assets/erd/print-render.js",
+      "original": "6a6732319c1f12ed6fbc68b150d8ed568a2128219ec5f723a9ec792fde16137e"
+    },
+    {
+      "file": "assets/erd/print-model.js",
+      "original": "13294e7da7d0d68d91cddf70ce08fbd2131396600eef28ccf1e6831ef4e9d7a5"
+    },
+    {
+      "file": "assets/erd/style.css",
+      "original": "4af21d6372fc55a8cc3d031a26b4c048439c0a621f3eb4765f301d1a9dc53fc2"
+    },
+    {
+      "file": "assets/erd/a4.css",
+      "original": "5bee8acc10573ff2c7fa36d71c26b149fe570a6b84b5f1dc4e924c4457e92a25"
+    },
+    {
+      "file": "assets/erd/print.css",
+      "original": "62530c9aae03bcd7f45ee8f785e38d21f2ddb97b1acab97aacf5f9a31dac7b6e"
+    },
+    {
+      "file": "assets/erd/artwork.js",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-a4.pdf",
+      "original": "ab5c8013b7d7fd8763099732448646eafd6cd4094ef3931934e7998ea7b80e52"
+    },
+    {
+      "file": "assets/erd/erd-a4-readable.pdf",
+      "original": "fdde4f716cc28a4d8faa46fc799dbcdb9fe75bc3ec4a3562e993e9849154ce45"
+    },
+    {
+      "file": "assets/erd/erd.pdf",
+      "original": "f59900b6cacf9b3033709daef60dfc2b74a21846539f0ba923dba9a85eb2bc99"
+    },
+    {
+      "file": "output/pdf/erd-a4-readable.pdf",
+      "original": "fdde4f716cc28a4d8faa46fc799dbcdb9fe75bc3ec4a3562e993e9849154ce45"
+    },
+    {
+      "file": "assets/erd/erd-a4-complete.svg",
+      "original": "c1026e0a971a6d24de37215e86f4729a5e24f13e48f9e6194de3bf79c72dc0c5"
+    },
+    {
+      "file": "assets/erd/erd-a4-complete.png",
+      "original": "51bd06c521d1b6e79eaa712f32d5483692e805654a7b904c1bfae43965700001"
+    },
+    {
+      "file": "assets/erd/erd-complete.svg",
+      "original": "92d9fc6f2efbc6f0b0b18024b02e937dee8f0324823b85920a81fbd5f598abe5"
+    },
+    {
+      "file": "assets/erd/erd-complete.png",
+      "original": "4d224d43526e5aa8fe26a4a68201622177f0c4fdc79bb6c36110b952acdec1bd"
+    },
+    {
+      "file": "integrations/erd/build-connected.cjs",
+      "original": null
+    },
+    {
+      "file": "integrations/erd/check.cjs",
+      "original": "a9f8f29d5cbf10312985995b038505abc52507b8a6eeec6f2c087308e3f5d7ba"
+    },
+    {
+      "file": "integrations/erd/check-a4.cjs",
+      "original": "949f080f5a0f4588e994924dbb3917b9e6b5643c12baa746d899db96fb2170c9"
+    },
+    {
+      "file": "integrations/erd/check-print.cjs",
+      "original": "09446abbbd9c39cc8a39e2e76c5601c27c2f4de58f8ae5e0a3f322ea2ae54934"
+    },
+    {
+      "file": "integrations/erd/SCREEN-ALIGNMENT.md",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-overview.svg",
+      "original": "3550be29f9c0206e470d238970d0f3b9f179e59247438afe605025a72893b5aa"
+    },
+    {
+      "file": "assets/erd/erd-print-overview.png",
+      "original": "6b7536adb503a0d0d59b373bc8187b98c39a15004281a726849c049007f2084b"
+    },
+    {
+      "file": "assets/erd/erd-print-identity.svg",
+      "original": "98ffdc0581ff0435d62beb508df5c462668e7bdefd6154f3c3879ad3744173a9"
+    },
+    {
+      "file": "assets/erd/erd-print-identity.png",
+      "original": "cfe2de409bf889ab007a45310e67f5b9b00309cd1f2a5ac84e8363c6e56eb1eb"
+    },
+    {
+      "file": "assets/erd/erd-print-classes.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-classes.png",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-schedule.svg",
+      "original": "daa27eca541ba79a833c1454faa123bcb729ecce7aae576ff25af62fdfe20d58"
+    },
+    {
+      "file": "assets/erd/erd-print-schedule.png",
+      "original": "e27c69ef0c15af280f581b3abfb3cfb09cc72003358ff7f1e265651e2a4d8ae6"
+    },
+    {
+      "file": "assets/erd/erd-print-requests.svg",
+      "original": "de68958fbea08fd681eec7ff33867783c7662b98264ae39a58bc7811a21ba54f"
+    },
+    {
+      "file": "assets/erd/erd-print-requests.png",
+      "original": "dff668d1612bf2becbaf9f287a26d963a706f3b109d743d69937cfdd83a12393"
+    },
+    {
+      "file": "assets/erd/erd-print-review.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-review.png",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-inventory.svg",
+      "original": "b210953fcb2074ad804bde072bfcdeae499da31cb8d3c75296374a789ce3dc42"
+    },
+    {
+      "file": "assets/erd/erd-print-inventory.png",
+      "original": "e4ec69476102e022b69cc218ae4a3915dfd7343580cc3a213ec162f4699f520e"
+    },
+    {
+      "file": "assets/erd/erd-print-borrowing.svg",
+      "original": "b142fb48c318348a68565e6f971710c6f8a9388475dd0ca678efc3f69f3346d0"
+    },
+    {
+      "file": "assets/erd/erd-print-borrowing.png",
+      "original": "e90bc82fc9088d0aa39600d9efbaa007b32edaec7d66bab1c97f0fc37a7827a8"
+    },
+    {
+      "file": "assets/erd/erd-print-administration.svg",
+      "original": "33ff663f631ab9cd9003f65c170100ab5433557d24996b3c550e0fb8f3330abc"
+    },
+    {
+      "file": "assets/erd/erd-print-administration.png",
+      "original": "602266295b5b4c944125434ade7174a1aa0d8d184a6f68bc24cb3cec9299a668"
+    },
+    {
+      "file": "assets/erd/erd-print-assistant.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-assistant.png",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-1.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-1.png",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-2.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-2.png",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-3.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-3.png",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-4.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-relations-4.png",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-rules.svg",
+      "original": null
+    },
+    {
+      "file": "assets/erd/erd-print-rules.png",
+      "original": null
+    }
+  ]
+}

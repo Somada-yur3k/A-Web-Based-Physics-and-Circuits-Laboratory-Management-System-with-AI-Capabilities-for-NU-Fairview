@@ -1,0 +1,10 @@
+const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
+const job = path.resolve(__dirname, '../tmp/pdfs/erd-update');
+const filename = path.join(job, 'manifest.json');
+const manifest = JSON.parse(fs.readFileSync(filename, 'utf8'));
+const current = fs.readFileSync(path.join(manifest.source, 'Docs.html'));
+fs.copyFileSync(path.join(manifest.stage, 'Docs.html'), path.join(job, 'Docs-before-rebase.html'));
+fs.writeFileSync(path.join(manifest.stage, 'Docs.html'), current);
+manifest.files.find(entry => entry.file === 'Docs.html').original = crypto.createHash('sha256').update(current).digest('hex');
+fs.writeFileSync(filename, JSON.stringify(manifest, null, 2));
+console.log('Rebased ERD staging on the latest main documentation. Only the reviewed ERD functions and navigation will change.');

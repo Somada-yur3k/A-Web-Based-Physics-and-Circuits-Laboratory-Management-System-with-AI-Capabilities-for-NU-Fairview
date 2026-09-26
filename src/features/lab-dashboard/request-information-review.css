@@ -1,4 +1,4 @@
-.request-review-content, .request-equipment-fields { display: grid; gap: 20px; color: #163e85; }
+.request-review-content, .request-equipment-fields { display: grid; gap: 20px; min-width: 0; color: #163e85; }
 .request-review-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .request-review-card { min-width: 0; padding: 20px; border: 1px solid #dce5f3; border-radius: 9px; background: #fff; }
 .request-review-card > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
@@ -49,5 +49,22 @@
   .request-review-card { padding: 16px; }
   .request-review-card > header { gap: 10px; }
   .request-review-card h3 { font-size: 17px; }
+  .request-equipment-fields > .request-add-student { justify-self: stretch; }
+}
+
+@container service-request (max-width: 760px) {
+  .request-review-grid, .request-approver-options, .request-item-row { grid-template-columns: minmax(0, 1fr); }
+}
+@container service-request (max-width: 600px) {
+  .request-review-table-scroll .request-review-students-table { min-width: 0; }
+  .request-review-students-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .request-review-students-table tbody { display: grid; gap: 12px; }
+  .request-review-students-table tr { display: block; padding: 12px; border: 1px solid #e0e7f2; border-radius: 7px; }
+  .request-review-students-table td { display: grid; gap: 4px; padding: 6px 0; border-bottom: 0; font-size: 14px; }
+  .request-review-students-table td::before { content: attr(data-label); color: #687da7; font-size: 12px; }
+  .request-review-card { padding: 16px; }
+  .request-review-card > header { flex-wrap: wrap; gap: 10px; }
+  .request-review-card h3 { min-width: 0; font-size: 17px; overflow-wrap: anywhere; }
+  .request-item-row input, .request-item-row select, .request-notes-field textarea { font-size: 16px; }
   .request-equipment-fields > .request-add-student { justify-self: stretch; }
 }

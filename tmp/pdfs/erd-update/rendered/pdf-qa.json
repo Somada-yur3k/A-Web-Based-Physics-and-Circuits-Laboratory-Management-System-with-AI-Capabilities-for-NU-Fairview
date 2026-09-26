@@ -1,0 +1,158 @@
+{
+  "pages": 15,
+  "entities": 30,
+  "attributes": 208,
+  "relationships": 61,
+  "pageDetails": [
+    {
+      "page": 1,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  Connected ERD - schema overview  30 entities | 208 attributes | 61 internal PK-FK relationships  USER_ACCOUNT  D1 | PK account_id | A1  SERVICE_REQUEST  D2 | PK request_id | A4  REQUEST_REVISION  D2 | PK revision_id | A4  RESERVATION  D2 | PK reservation_id | A5  BORROWING  D5 | PK borrowing_id | A7  APPROVAL  D2 | PK approval_id | A5  REQUEST_ITEM  D2 | PK request_item_id | A5  REQUEST_MEMBER  D2 | PK request_member_id | A5  R17 1 : 0..*  R18 1 : 0..*  R30 1 : 0..1  R42 1 : 0..*  1   0..1  R24  1  0..*  R26  1  0..*  R28  Academic approval and room booking  are separate. A request may need no approval; Dean approval alone creates no reservation.  Every entity, grouped by function  Blue = demo/sample-backed concepts. Amber = persistent processes not implemented yet.  A1 Accounts  USER_ACCOUNT STUDENT SECTION  A2 Faculty, Classrep  FACULTY_SECTION CLASS_GROUP CLASS_REP_ASSIGNMENT GROUP_MEMBER  A3 Laboratories, Rooms  LABORATORY LAB_ROOM TERM REGULAR_SCHEDULE  A4 Service Requests  SERVICE_REQUEST REQUEST_REVISION  A5 Approval, Requested Items  APPROVAL REQUEST_ITEM REQUEST_MEMBER RESERVATION  A6 Laboratory Inventory  ITEM_CATEGORY ITEM STOCK_MOVEMENT DISPOSAL  A7 Borrowing Slips, Issuance  BORROWING BORROWING_ITEM BORROWING_MEMBER RETURN_ENTRY  A8 Student Clearance  CLEARANCE USAGE_LOG DAILY_TASK  A9 Lab Assistant Extension  KNOWLEDGE_ARTICLE CHAT_EXCHANGE  Overview connectors are selected links; all exact keys and cardinalities follow in A1-A9 and R01-R61.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   1 / 15"
+    },
+    {
+      "page": 2,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A1 - Accounts and Student Identity  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  USER_ACCOUNT   D1 | Demo  PK   account_id   uuid  FK/U   student_id ?   uuid   R01  FK   staff_lab_id ?   uuid   R02  UK   login_identifier   text   UK  UK   email   text   UK  first_name   text  middle_name ?   text  last_name   text  contact_number ?   text  department ?   text  role   enum  status   enum  notes ?   text  created_at   timestamptz  updated_at   timestamptz  Profile and role context for login, account management and staff scoping. account_id maps to Supabase auth.users.id at integration.  Passwords belong to Supabase Auth; no password_hash or temporary password is stored in the profile.  STUDENT   D1 | Demo  PK   student_id   uuid  UK   student_number   text   UK  full_name   text  program ?   text  Participant identity; NU ID is independent of the submitting Class Representative account.  student_number matches YYYY-NNNNNNN, e.g. 2024-1031816.  SECTION   D1 | Demo  PK   section_id   uuid  UK   section_code   text   UK  program ?   text  active   boolean  Named class section used by Faculty assignments and the fixed participant section.  Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   2 / 15"
+    },
+    {
+      "page": 3,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A2 - Faculty, Classrep and Class Membership  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  FACULTY_SECTION   D1 | Demo  PK   faculty_section_id   uuid  FK   faculty_id   uuid   R03  FK   section_id   uuid   R04  FK   lab_id   uuid   R05  active   boolean  Many assigned sections per Faculty, scoped to a laboratory before a subject/class is created.  Unique: faculty_id + section_id + lab_id.  CLASS_GROUP   D1 | Demo  PK   group_id   uuid  FK   term_id   uuid   R06  FK   faculty_section_id   uuid   R07  subject_code   text  subject_name   text  active   boolean  Subject/class assignment. This table does not mean the Group request type.  Unique: term_id + faculty_section_id + subject_code.  CLASS_REP_ASSIGNMENT   D1 | Demo  PK   rep_assignment_id   uuid  FK   account_id   uuid   R08  FK   section_id   uuid   R09  FK   group_id   uuid   R10  active   boolean  assigned_at   timestamptz  Headlab Classrep form: fixed section, designated Faculty, laboratory and existing subject/class.  account_id must reference a CLASSREP account.  GROUP_MEMBER   D1 | Future  PK   group_member_id   uuid  FK   group_id   uuid   R11  FK   student_id   uuid   R12  active   boolean  Authorized roster for the assigned subject/class; required for real participant ownership checks.  Unique: group_id + student_id. Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   3 / 15"
+    },
+    {
+      "page": 4,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A3 - Laboratories, Rooms and Regular Schedule  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  LABORATORY   D3 | Demo  PK   lab_id   uuid  UK   lab_code   text   UK  lab_name   text  active   boolean  Physics or Circuits laboratory scope; one laboratory can contain several rooms.  lab_code is PHYSICS or CIRCUITS. Staff data access uses this ID, not a room ID.  LAB_ROOM   D3 | Demo  PK   room_id   uuid  FK   lab_id   uuid   R13  room_name   text  active   boolean  Room Number choices under a laboratory, e.g. Physics 201/202 and Circuits 301/302.  Unique: lab_id + room_name.  TERM   D3 | Future  PK   term_id   uuid  UK   term_code   text   UK  starts_on   date  ends_on   date  Term boundary for subject assignments and weekly schedules.  starts_on <= ends_on.  REGULAR_SCHEDULE   D3 | Demo  PK   regular_schedule_id   uuid  FK   term_id   uuid   R14  FK   room_id   uuid   R15  FK   group_id ?   uuid   R16  block_type   enum  weekday   integer  start_time   time  end_time   time  valid_from   date  valid_until   date  Recurring laboratory or lecture blocks rendered by Room Availability.  weekday is 1-6 (Monday-Saturday) in the current form. start_time < end_time. Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   4 / 15"
+    },
+    {
+      "page": 5,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A4 - Service Requests and Immutable Revisions  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  SERVICE_REQUEST   D2 | Demo  PK   request_id   uuid  UK   reference_no   text   UK  FK   requester_id   uuid   R17  status   enum  submitted_at   timestamptz  Submitted request header shown in Dean, requester status and laboratory Staff request queues.  requester_id must reference CLASSREP or FACULTY. Identity, reference and initial status are derived on the server.  REQUEST_REVISION   D2 | Demo  PK   revision_id   uuid  FK   request_id   uuid   R18  FK   lab_id   uuid   R19  FK   group_id   uuid   R20  FK   room_id   uuid   R21  FK   regular_schedule_id ?   uuid   R22  FK   created_by   uuid   R23  revision_no   integer  request_type ?   enum  activity_type ?   enum  schedule_type   enum  request_for   enum  starts_at   timestamptz  ends_at   timestamptz  notes ?   text  is_current   boolean  created_at   timestamptz  Detached request snapshot: laboratory, class, room/time, request/activity type and notes.  Unique: request_id + revision_no. Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   5 / 15"
+    },
+    {
+      "page": 6,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A5 - Approval, Requested Items and Participants  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  APPROVAL   D2 | Demo  PK   approval_id   uuid  FK/U   revision_id   uuid   R24  FK   approver_id   uuid   R25  reviewer_role   enum  decision   enum  remarks ?   text  created_at   timestamptz  decided_at ?   timestamptz  Exactly one selected Faculty or Dean reviewer where academic approval is required.  Classrep On-Schedule -> assigned Faculty. Classrep Out-of-Schedule -> selected assigned Faculty or Dean.  REQUEST_ITEM   D2 | Demo  PK   request_item_id   uuid  FK   revision_id   uuid   R26  FK   item_id ?   uuid   R27  name_snapshot   text  kind_snapshot   enum  unit_snapshot   text  qty_requested   integer  Requested catalogue items or additional manual equipment/materials; quantities are not issued stock.  item_id may be null for Additional Items; name/type/quantity are still mandatory.  REQUEST_MEMBER   D2 | Demo  PK   request_member_id   uuid  FK   revision_id   uuid   R28  FK   student_id   uuid   R29  name_snapshot   text  student_no_snapshot   text  Selected students for Classrep Group or Student Only, on both schedule variants.  Unique: revision_id + student_id.  RESERVATION   D2 | Future  PK   reservation_id   uuid  FK/U   revision_id   uuid   R30  FK   processed_by   uuid   R31  status   enum  reserved_at   timestamptz  Confirmed dated room booking, created only by later laboratory processing after any required academic approval.  No reservation is created by the current Submit or Dean Approve actions. Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   6 / 15"
+    },
+    {
+      "page": 7,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A6 - Laboratory Inventory and Stock Ledger  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  ITEM_CATEGORY   D4 | Demo  PK   category_id   uuid  UK   category_name   text   UK  Category tags for equipment/material search and inventory management.  ITEM   D4 | Demo  PK   item_id   uuid  FK   lab_id   uuid   R32  FK   category_id   uuid   R33  item_name   text  item_type   enum  unit   text  stock_quantity   integer  condition_status   enum  reorder_level   integer  active   boolean  updated_at   timestamptz  Inventory row owned by one laboratory; shared equipment types still have distinct stock per lab.  Unique: lab_id + item_name.  STOCK_MOVEMENT   D4 | Future  PK   movement_id   uuid  FK   item_id   uuid   R34  FK   recorded_by   uuid   R35  FK   borrowing_item_id ?   uuid   R36  FK   return_entry_id ?   uuid   R37  FK   disposal_id ?   uuid   R38  on_hand_delta   integer  owned_delta   integer  movement_type   enum  recorded_at   timestamptz  Auditable stock ledger for receipts, adjustments, issues, returns, consumption and disposal.  Update ITEM stock and the source transaction in the same database transaction. Ledger posting is not yet implemented.  DISPOSAL   D10 | Future  PK   disposal_id   uuid  FK   item_id   uuid   R39  FK   recorded_by   uuid   R40  FK   return_entry_id ?   uuid   R41  quantity   integer  waste_class   text  reason   text  disposed_at   timestamptz  status   enum  Documented physical waste disposal; lost items are not physical waste.  Disposal quantity must be positive and supported by physical stock or a damaged return. Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   7 / 15"
+    },
+    {
+      "page": 8,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A7 - Borrowing Slips, Issuance and Returns  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  BORROWING   D5 | Demo  PK   borrowing_id   uuid  FK   reservation_id   uuid   R42  FK   borrower_account_id   uuid   R43  FK   issued_by   uuid   R44  UK   slip_no   text   UK  issued_at   timestamptz  due_at   timestamptz  status   enum  closed_at ?   timestamptz  Borrowing slip header for the Staff record screen; issuance is a future transaction.  Current Staff borrowing slips are isolated sample records, not created from demo requests. The target FK joins a slip to a confirmed reservation.  BORROWING_ITEM   D5 | Future  PK   borrowing_item_id   uuid  FK   borrowing_id   uuid   R45  FK   request_item_id   uuid   R46  FK   item_id   uuid   R47  qty_issued   integer  Actual issued quantities, separate from requested quantities.  Unique: borrowing_id + request_item_id + item_id.  BORROWING_MEMBER   D5 | Future  PK   borrow_member_id   uuid  FK   borrowing_id   uuid   R48  FK   request_member_id   uuid   R49  Accountable selected students, never all students in a section automatically.  Unique: borrowing_id + request_member_id.  RETURN_ENTRY   D5 | Future  PK   return_entry_id   uuid  FK   borrowing_item_id   uuid   R50  FK   received_by   uuid   R51  qty_good   integer  qty_broken   integer  qty_lost   integer  qty_consumed   integer  recorded_at   timestamptz  Partial-return history and outcome quantities for each issued item.  Quantities are nonnegative and total reconciled quantity cannot exceed issued quantity. At least one outcome quantity is positive. Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   8 / 15"
+    },
+    {
+      "page": 9,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A8 - Student Clearance and Laboratory Logs  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  CLEARANCE   D6 | Future  PK   clearance_id   uuid  FK   return_entry_id   uuid   R52  FK   borrow_member_id   uuid   R53  FK   raised_by   uuid   R54  FK   settled_by ?   uuid   R55  quantity   integer  reason   text  status   enum  raised_at   timestamptz  settled_at ?   timestamptz  Student liabilities from a documented return and accountable selected participant.  Clearance remains a Classrep/student workflow. Faculty has no clearance page or implied student participants.  USAGE_LOG   D11 | Future  PK   usage_id   uuid  FK   reservation_id   uuid   R56  FK   borrowing_id ?   uuid   R57  FK   recorded_by   uuid   R58  actual_start   timestamptz  actual_end   timestamptz  remarks ?   text  Actual laboratory use after a reservation; distinct from planned time.  Room-only use can have no borrowing slip. Faculty identity comes from the reservation class assignment.  DAILY_TASK   D7 | Future  PK   task_id   uuid  FK   lab_id   uuid   R59  FK   recorded_by   uuid   R60  task_date   date  activity   text  status   enum  work_availability   text  overtime_hours   numeric  remarks ?   text  Laboratory Staff work log retained for the broader documented system.  Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   9 / 15"
+    },
+    {
+      "page": 10,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  A9 - Lab Assistant Extension  Full definitions | ? = nullable | PK = primary key | FK = foreign key | U / UK = unique | Rxx = relationship ID  KNOWLEDGE_ARTICLE   D8 | Future  PK   article_id   uuid  topic   text  content   text  category   text  updated_at   timestamptz  Curated information for the future Lab Assistant; not an approval engine.  CHAT_EXCHANGE   D9 | Future  PK   chat_id   uuid  FK   requester_id   uuid   R61  question   text  answer   text  intent   enum  response_status   enum  asked_at   timestamptz  Future authenticated Lab Assistant question/answer history.  Chat does not approve requests, reserve a room, mutate inventory or create a Forecast entity. Cross-table lifecycle/role rules are listed in the dictionary and the final implementation boundary page.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   10 / 15"
+    },
+    {
+      "page": 11,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  PK-FK relationship register 1 / 4  Left cardinality = parents per child. Right = children per parent. A1-A9 identify full-definition pages.  ID   Parent / PK   Cardinality   Child / FK   Pages  R01   STUDENT  student_id  0..1   0..1   USER_ACCOUNT  student_id  A1 A1  R02   LABORATORY  lab_id  0..1   0..*   USER_ACCOUNT  staff_lab_id  A3 A1  R03   USER_ACCOUNT  account_id  1   0..*   FACULTY_SECTION  faculty_id  A1 A2  R04   SECTION  section_id  1   0..*   FACULTY_SECTION  section_id  A1 A2  R05   LABORATORY  lab_id  1   0..*   FACULTY_SECTION  lab_id  A3 A2  R06   TERM  term_id  1   0..*   CLASS_GROUP  term_id  A3 A2  R07   FACULTY_SECTION  faculty_section_id  1   0..*   CLASS_GROUP  faculty_section_id  A2 A2  R08   USER_ACCOUNT  account_id  1   0..*   CLASS_REP_ASSIGNMENT  account_id  A1 A2  R09   SECTION  section_id  1   0..*   CLASS_REP_ASSIGNMENT  section_id  A1 A2  R10   CLASS_GROUP  group_id  1   0..*   CLASS_REP_ASSIGNMENT  group_id  A2 A2  R11   CLASS_GROUP  group_id  1   0..*   GROUP_MEMBER  group_id  A2 A2  R12   STUDENT  student_id  1   0..*   GROUP_MEMBER  student_id  A1 A2  R13   LABORATORY  lab_id  1   0..*   LAB_ROOM  lab_id  A3 A3  R14   TERM  term_id  1   0..*   REGULAR_SCHEDULE  term_id  A3 A3  R15   LAB_ROOM  room_id  1   0..*   REGULAR_SCHEDULE  room_id  A3 A3  R16   CLASS_GROUP  group_id  0..1   0..*   REGULAR_SCHEDULE  group_id  A2 A3  0..* means zero or many. A saved request needs one current revision; FK notation alone cannot enforce that.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   11 / 15"
+    },
+    {
+      "page": 12,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  PK-FK relationship register 2 / 4  Left cardinality = parents per child. Right = children per parent. A1-A9 identify full-definition pages.  ID   Parent / PK   Cardinality   Child / FK   Pages  R17   USER_ACCOUNT  account_id  1   0..*   SERVICE_REQUEST  requester_id  A1 A4  R18   SERVICE_REQUEST  request_id  1   0..*   REQUEST_REVISION  request_id  A4 A4  R19   LABORATORY  lab_id  1   0..*   REQUEST_REVISION  lab_id  A3 A4  R20   CLASS_GROUP  group_id  1   0..*   REQUEST_REVISION  group_id  A2 A4  R21   LAB_ROOM  room_id  1   0..*   REQUEST_REVISION  room_id  A3 A4  R22   REGULAR_SCHEDULE  regular_schedule_id  0..1   0..*   REQUEST_REVISION  regular_schedule_id  A3 A4  R23   USER_ACCOUNT  account_id  1   0..*   REQUEST_REVISION  created_by  A1 A4  R24   REQUEST_REVISION  revision_id  1   0..1   APPROVAL  revision_id  A4 A5  R25   USER_ACCOUNT  account_id  1   0..*   APPROVAL  approver_id  A1 A5  R26   REQUEST_REVISION  revision_id  1   0..*   REQUEST_ITEM  revision_id  A4 A5  R27   ITEM  item_id  0..1   0..*   REQUEST_ITEM  item_id  A6 A5  R28   REQUEST_REVISION  revision_id  1   0..*   REQUEST_MEMBER  revision_id  A4 A5  R29   STUDENT  student_id  1   0..*   REQUEST_MEMBER  student_id  A1 A5  R30   REQUEST_REVISION  revision_id  1   0..1   RESERVATION  revision_id  A4 A5  R31   USER_ACCOUNT  account_id  1   0..*   RESERVATION  processed_by  A1 A5  R32   LABORATORY  lab_id  1   0..*   ITEM  lab_id  A3 A6  0..* means zero or many. A saved request needs one current revision; FK notation alone cannot enforce that.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   12 / 15"
+    },
+    {
+      "page": 13,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  PK-FK relationship register 3 / 4  Left cardinality = parents per child. Right = children per parent. A1-A9 identify full-definition pages.  ID   Parent / PK   Cardinality   Child / FK   Pages  R33   ITEM_CATEGORY  category_id  1   0..*   ITEM  category_id  A6 A6  R34   ITEM  item_id  1   0..*   STOCK_MOVEMENT  item_id  A6 A6  R35   USER_ACCOUNT  account_id  1   0..*   STOCK_MOVEMENT  recorded_by  A1 A6  R36   BORROWING_ITEM  borrowing_item_id  0..1   0..*   STOCK_MOVEMENT  borrowing_item_id  A7 A6  R37   RETURN_ENTRY  return_entry_id  0..1   0..*   STOCK_MOVEMENT  return_entry_id  A7 A6  R38   DISPOSAL  disposal_id  0..1   0..*   STOCK_MOVEMENT  disposal_id  A6 A6  R39   ITEM  item_id  1   0..*   DISPOSAL  item_id  A6 A6  R40   USER_ACCOUNT  account_id  1   0..*   DISPOSAL  recorded_by  A1 A6  R41   RETURN_ENTRY  return_entry_id  0..1   0..*   DISPOSAL  return_entry_id  A7 A6  R42   RESERVATION  reservation_id  1   0..*   BORROWING  reservation_id  A5 A7  R43   USER_ACCOUNT  account_id  1   0..*   BORROWING  borrower_account_id  A1 A7  R44   USER_ACCOUNT  account_id  1   0..*   BORROWING  issued_by  A1 A7  R45   BORROWING  borrowing_id  1   0..*   BORROWING_ITEM  borrowing_id  A7 A7  R46   REQUEST_ITEM  request_item_id  1   0..*   BORROWING_ITEM  request_item_id  A5 A7  R47   ITEM  item_id  1   0..*   BORROWING_ITEM  item_id  A6 A7  R48   BORROWING  borrowing_id  1   0..*   BORROWING_MEMBER  borrowing_id  A7 A7  0..* means zero or many. A saved request needs one current revision; FK notation alone cannot enforce that.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   13 / 15"
+    },
+    {
+      "page": 14,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  PK-FK relationship register 4 / 4  Left cardinality = parents per child. Right = children per parent. A1-A9 identify full-definition pages.  ID   Parent / PK   Cardinality   Child / FK   Pages  R49   REQUEST_MEMBER  request_member_id  1   0..*   BORROWING_MEMBER  request_member_id  A5 A7  R50   BORROWING_ITEM  borrowing_item_id  1   0..*   RETURN_ENTRY  borrowing_item_id  A7 A7  R51   USER_ACCOUNT  account_id  1   0..*   RETURN_ENTRY  received_by  A1 A7  R52   RETURN_ENTRY  return_entry_id  1   0..*   CLEARANCE  return_entry_id  A7 A8  R53   BORROWING_MEMBER  borrow_member_id  1   0..*   CLEARANCE  borrow_member_id  A7 A8  R54   USER_ACCOUNT  account_id  1   0..*   CLEARANCE  raised_by  A1 A8  R55   USER_ACCOUNT  account_id  0..1   0..*   CLEARANCE  settled_by  A1 A8  R56   RESERVATION  reservation_id  1   0..*   USAGE_LOG  reservation_id  A5 A8  R57   BORROWING  borrowing_id  0..1   0..*   USAGE_LOG  borrowing_id  A7 A8  R58   USER_ACCOUNT  account_id  1   0..*   USAGE_LOG  recorded_by  A1 A8  R59   LABORATORY  lab_id  1   0..*   DAILY_TASK  lab_id  A3 A8  R60   USER_ACCOUNT  account_id  1   0..*   DAILY_TASK  recorded_by  A1 A8  R61   USER_ACCOUNT  account_id  1   0..*   CHAT_EXCHANGE  requester_id  A1 A9  0..* means zero or many. A saved request needs one current revision; FK notation alone cannot enforce that.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   14 / 15"
+    },
+    {
+      "page": 15,
+      "dimensions": [
+        0,
+        0,
+        594.95996,
+        841.91998
+      ],
+      "text": "NU FAIRVIEW LABORATORY MANAGEMENT SYSTEM  Workflow rules and implementation boundary  The model describes the target persistent design; the running application still uses fixed demo accounts and temporary stores.  1. Class Representative requests  Choose Physics/Circuits, Group or Student Only, On/Out Schedule, room/time, optional equipment/materials and final review. Group accepts one or more selected students; Student Only accepts exactly one. Participant section is the authorized class section, not free-form input.  2. Faculty requests  Choose Laboratory, then Laboratory Activity or Non-Laboratory Activity. Laboratory Activity uses assigned On-Schedule room/time and skips Schedule Type. Non-Laboratory Activity chooses On/Out Schedule. Both include Schedule & Room, Equipment & Materials, and Review; Faculty has no Group/Student Only or student selection.  3. One academic reviewer, or none  Classrep On-Schedule -> assigned Faculty. Classrep Out-of-Schedule -> explicitly selected assigned Faculty or Dean. Faculty On-Schedule -> no academic approval. Faculty Non-Laboratory Activity Out-of-Schedule -> Dean. The demo has no automatic Faculty availability detection or chained approvals.  4. What submission and Dean review actually do  The server validates the form, derives requester/reference/routing, saves a detached snapshot and sets Pending Faculty/Dean Approval or Awaiting Reservation. Dean can decide only its pending Out-of-Schedule requests; rejection needs remarks. Decision history and requester status work. Faculty review is unfinished.  5. Laboratory Staff scope  Physics Staff sees Physics inventory, sample borrowing slips and submitted Physics requests. Circuits Staff sees the equivalent Circuits data. Inventory add/edit/delete works with whole-number stock and condition. Scope is server-derived from the account; querying or editing another laboratory is rejected.  6. Future reservation and borrowing connection  SERVICE_REQUEST -> current REQUEST_REVISION -> optional APPROVAL -> RESERVATION -> BORROWING -> BORROWING_ITEM / BORROWING_MEMBER -> RETURN_ENTRY -> student CLEARANCE where needed. Request approval, room booking, item issue and return are distinct records/events. Room-only usage may have no borrowing slip.  7. Database work still required  No Supabase Auth, SQL tables, RLS, live rosters, reservation holds, stock ledger, issuance/return, clearance, usage logs or assistant history are deployed. Borrowing rows and room schedules are samples. Staff stock edits do not alter the static request catalogue. Retained DFD extension tables are explicitly marked Future.  8. Integrity for integration  Validate authorized class/participants, same-lab room/item/Staff ownership, one active Classrep per section, one current revision and one final academic decision. Use transactions for live room conflicts and inventory posting. Snapshots and revision history preserve past names, quantities, approval and accountability.  Screen-aligned logical baseline | 27 September 2026 | Supabase not deployed   15 / 15"
+    }
+  ]
+}

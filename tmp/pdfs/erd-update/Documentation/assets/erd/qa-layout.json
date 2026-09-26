@@ -1,0 +1,69 @@
+{
+  "entities": 30,
+  "fields": 208,
+  "relationships": 61,
+  "pages": 15,
+  "issues": [],
+  "layouts": [
+    {
+      "id": "overview",
+      "title": "Schema overview"
+    },
+    {
+      "id": "identity",
+      "title": "Accounts and Student Identity"
+    },
+    {
+      "id": "classes",
+      "title": "Faculty, Classrep and Class Membership"
+    },
+    {
+      "id": "schedule",
+      "title": "Laboratories, Rooms and Regular Schedule"
+    },
+    {
+      "id": "requests",
+      "title": "Service Requests and Immutable Revisions"
+    },
+    {
+      "id": "review",
+      "title": "Approval, Requested Items and Participants"
+    },
+    {
+      "id": "inventory",
+      "title": "Laboratory Inventory and Stock Ledger"
+    },
+    {
+      "id": "borrowing",
+      "title": "Borrowing Slips, Issuance and Returns"
+    },
+    {
+      "id": "administration",
+      "title": "Student Clearance and Laboratory Logs"
+    },
+    {
+      "id": "assistant",
+      "title": "Lab Assistant Extension"
+    },
+    {
+      "id": "relations-1",
+      "title": "Relationships 1"
+    },
+    {
+      "id": "relations-2",
+      "title": "Relationships 2"
+    },
+    {
+      "id": "relations-3",
+      "title": "Relationships 3"
+    },
+    {
+      "id": "relations-4",
+      "title": "Relationships 4"
+    },
+    {
+      "id": "rules",
+      "title": "Workflow and boundaries"
+    }
+  ]
+}

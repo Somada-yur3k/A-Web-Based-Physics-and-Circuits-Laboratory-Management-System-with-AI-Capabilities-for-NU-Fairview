@@ -56,7 +56,7 @@ export default function Home() {
           <button className="sign-in" type="submit" disabled={signingIn} aria-busy={signingIn}><Icon name="login" /><span>{signingIn ? "Signing In..." : "Sign In"}</span></button>
           <p className="form-notice" role="status">{notice}</p>
         </form>
-        <footer className="login-footer"><div className="footer-divider"><span>NU Fairview</span></div><p>Physics and Circuits Laboratory Service</p><small className="login-demo-note">Demo workspace</small></footer>
+        <footer className="login-footer"><div className="footer-divider"><span>NU Fairview</span></div><p>Physics and Circuits Laboratory Service</p></footer>
       </section>
     </main>
   );

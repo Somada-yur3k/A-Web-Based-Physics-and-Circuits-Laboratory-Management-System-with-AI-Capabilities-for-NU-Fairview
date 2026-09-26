@@ -1,0 +1,98 @@
+/* Five A4 sequence diagrams aligned one-to-one with the five DFD Level 1 and
+ * Activity Diagram major processes. Minor use cases are summarized with UML
+ * combined fragments instead of being repeated as separate pages. */
+(function(root){
+'use strict';
+const diagrams=[];
+const call=(from,to,label,extra={})=>({kind:'call',from,to,label,...extra});
+const reply=(from,to,label)=>({kind:'reply',from,to,label});
+const self=label=>({kind:'self',from:'system',to:'system',label});
+const signal=(to,label)=>({kind:'signal',from:'system',to,label});
+const db=(label,result,stores,write=false)=>[call('system','db',label,{stores,write}),reply('db','system',result)];
+const branch=(guard,steps)=>({guard,steps});
+const alt=(...operands)=>({kind:'alt',operands});
+const par=(...operands)=>({kind:'par',operands});
+const opt=(guard,steps)=>({kind:'opt',operands:[branch(guard,steps)]});
+const add=model=>diagrams.push({links:[],...model,code:'SEQ-'+String(diagrams.length+1).padStart(2,'0')});
+
+add({id:'p1',title:'User Access and Account Management',source:'p1',
+ actors:['Class Representative','Faculty','Dean','Head Laboratory','Physics Laboratory Staff','Circuits Laboratory Staff'],
+ uses:['login','issueacct'],processes:['p1.1','p1.2','p1.3'],stores:['d1'],
+ participants:[
+  {id:'actor',kind:'actor',label:'Authorized\nUser',roles:['Class Representative','Faculty','Dean','Head Laboratory','Physics Laboratory Staff','Circuits Laboratory Staff']},
+  {id:'head',kind:'actor',label:'Head Lab',roles:['Head Laboratory']},
+  {id:'faculty',kind:'actor',label:'Faculty',roles:['Faculty']},
+  {id:'system',kind:'system',label:'Laboratory\nWeb System'},
+  {id:'db',kind:'database',label:'Database\nD1'}],
+ precondition:'Login uses an issued account. Head creates Faculty first; Faculty manually verifies Class Rep. name, Student ID and section.',
+ steps:[alt(
+  branch('Log in',[call('actor','system','Submit credentials'),...db('Read account and role scope','Account result',['d1']),self('Validate; establish scoped session'),reply('system','actor','Login result')]),
+  branch('Create Faculty / Class Rep. account',[call('head','system','Enter verified account details'),self('Authorize Head; check ID and section'),...db('Create valid account','Account created / refused',['d1'],true),opt('New account created',[signal('faculty','Credentials for owner / Rep. hand-off')]),reply('system','head','Creation result')]),
+  branch('Update existing Faculty / Class Rep. account',[call('head','system','Submit account update'),self('Authorize Head; retain target role'),...db('Update details / active status','Account updated / refused',['d1'],true),reply('system','head','Update result')])
+ )],
+ note:'Faculty and Class Representatives never self-register. Head Laboratory creates and manages only those two account roles. One account per section is reused across subjects. Faculty manually hands credentials to the Class Rep.; this recipient is not the reviewer of every subject. Updates retain role and history. Dean remains pre-assigned.'});
+
+add({id:'p2',title:'Reservations, Availability and Approvals',source:'p2',actors:['Class Representative','Faculty','Dean'],
+ uses:['chooselab','viewsched','submitscheduled','submitcombined','cancelres','reschedres','viewstatus','viewhistory','approve'],processes:['p2.1','p2.2','p2.3','p2.4'],stores:['d2','d3','d4'],
+ participants:[
+  {id:'requester',kind:'actor',label:'Class Rep. /\nFaculty',roles:['Class Representative','Faculty']},
+  {id:'faculty',kind:'actor',label:'Selected Class\nFaculty',roles:['Faculty']},
+  {id:'dean',kind:'actor',label:'Dean',roles:['Dean']},
+  {id:'system',kind:'system',label:'Laboratory\nWeb System'},
+  {id:'db',kind:'database',label:'Database\nD2, D3, D4'}],
+ precondition:'Class Rep.: Group = selected class members; Student Only = one selected class student.\nChoice required for both schedule variants; Faculty requests do not require this choice.',
+ steps:[
+  call('requester','system','View / submit / change own reservation'),...db('Read schedule, holds, stock and owned records','Scoped evidence',['d2','d3','d4']),self('Validate class, type, block, items and class Faculty'),
+  ...db('Save valid request / change; keep reads unchanged','Current reservation result',['d2'],true),signal('faculty','Notify if Faculty review is required'),reply('system','requester','Availability, status or saved request result'),
+  opt('Class Rep: on-schedule or available Faculty',[call('faculty','system','Approve / reject routed request'),self('Validate assigned Faculty; decision is final'),...db('Save final Approved or Rejected','Decision saved',['d2'],true),signal('requester','Notify final decision'),reply('system','faculty','Decision confirmed')]),
+  opt('Out-of-schedule: Faculty requester or Faculty unavailable',[call('dean','system','Approve / reject eligible request'),self('Validate direct Dean route; decision is final'),...db('Save final Approved or Rejected','Decision saved',['d2'],true),signal('requester','Notify final decision'),reply('system','dean','Decision confirmed')])
+ ],
+ note:'Class Representative selects GROUP or STUDENT_ONLY for selected classmates: GROUP retains selected class members; STUDENT_ONLY requires one selected class student. The submitting account is not automatically the borrower. Both schedule variants require the choice. Class Rep on-schedule requests go to Faculty. Out-of-schedule requests go to available Faculty, or directly to Dean if Faculty is unavailable. The selected reviewer makes the final decision; no Faculty-to-Dean escalation follows. Faculty chooses Laboratory Activity or Non-Laboratory Activity after the laboratory. Laboratory Activity carries over the assigned class, room, date, time and block and proceeds directly to equipment/materials and review. Non-Laboratory Activity collects Schedule Type with class, room, date, time and block before equipment/materials and review. Neither Faculty alternative uses a separate Schedule & Room Availability page; backend validation still checks the schedule and stock. Both validated on-schedule Faculty modes are Approved without an approval row; Faculty out-of-schedule requests are Pending for Dean. Rejection releases the hold.'});
+
+add({id:'p3',title:'Laboratory Questions',source:'p3',actors:['Class Representative','Faculty'],uses:['askq'],processes:['p3.1','p3.2','p3.3','p3.4'],stores:['d4','d8','d9'],
+ participants:[{id:'actor',kind:'actor',label:'Class Rep. /\nFaculty',roles:['Class Representative','Faculty']},{id:'system',kind:'system',label:'Laboratory\nQ&A System'},{id:'db',kind:'database',label:'Database\nD4, D8, D9'}],
+ precondition:'Signed in Class Representative or Faculty; Q&A is informational and scope-limited.',
+ steps:[call('actor','system','Submit laboratory question'),self('Classify intent and permitted scope'),alt(
+  branch('Laboratory / equipment information or hours',[...db('Read approved knowledge / current inventory','Evidence / unavailable',['d4','d8']),self('Prepare evidence-based answer'),...db('Save Q&A exchange','History saved',['d9'],true),reply('system','actor','Answer / information unavailable')]),
+  branch('else: unsupported action request',[self('Prepare scope refusal'),...db('Save question and refusal','History saved',['d9'],true),reply('system','actor','Refusal and allowed scope')]))],
+ note:'Answers Circuits / Physics laboratory information, equipment information / current availability and operating hours. Missing evidence is reported as unavailable. Schedule blocks, reservation tracking and clearance remain in their own pages. No reservation, stock hold or future-session availability guarantee.'});
+
+add({id:'p4',title:'Equipment and Borrowing Management',source:'p4',actors:['Head Laboratory','Physics Laboratory Staff','Circuits Laboratory Staff'],
+ uses:['mgminv','issueeq','procret','wastedisp'],processes:['p4.1','p4.2','p4.3','p4.4','p4.5','p4.6','p4.7','p4.8'],stores:['d2','d4','d5','d10'],
+ participants:[{id:'actor',kind:'actor',label:'Head Lab /\nassigned Staff',roles:['Head Laboratory','Physics Laboratory Staff','Circuits Laboratory Staff']},{id:'system',kind:'system',label:'Laboratory\nWeb System'},{id:'db',kind:'database',label:'Database\nD2, D4, D5, D10'}],
+ precondition:'Signed in Head Laboratory or assigned laboratory Staff; laboratory scope is enforced.',
+ steps:[
+  call('actor','system','Select equipment operation'),...db('Read booking, stock and actual usage history','Scoped operation evidence',['d2','d4','d5']),self('Validate role, lab, status and quantities'),
+  alt(
+   branch('Inventory search / valid change',[...db('Read or save inventory result','Inventory result',['d4'],true),reply('system','actor','Inventory result')]),
+   branch('Issue after final approval',[...db('Create borrowing slip after final approval; deduct stock','Issue saved',['d4','d5'],true),reply('system','actor','Issuance result')]),
+   branch('Return reconciliation',[...db('Save return and completed usage logs','Return saved',['d2','d4','d5'],true),reply('system','actor','Return result')]),
+   branch('Eligible waste disposal',[...db('Save disposal and stock adjustment','Disposal saved',['d4','d10'],true),reply('system','actor','Disposal result')]),
+   branch('Forecast requested by Head Lab only',[
+    self('Check history sufficiency'),
+    alt(branch('Sufficient history',[self('Estimate next-month needs by item type'),reply('system','actor','Forecast; restock / shortage advice')]),
+        branch('Insufficient history',[reply('system','actor','Known stock / threshold alerts only')]))
+   ]),
+   branch('Else: invalid / no permitted operation',[reply('system','actor','No change; operation unavailable')])
+  )
+ ],
+ note:'Staff operate only within their assigned laboratory; only Head Lab requests forecasts. Forecast uses actual consumable use or concurrent reusable-equipment demand, not summed borrowing counts. Show history period and generation date. Recommendations are read-only: no stock update, forecast table or automatic purchase. Returns generate completed usage evidence; issuance requires final approval.'});
+
+add({id:'p5',title:'Laboratory Administration and Reporting',source:'p5',actors:['Head Laboratory','Class Representative'],uses:['procclear','clearstatus','mgmlogs','endterm'],processes:['p5.1','p5.2','p5.3','p5.4','p5.5'],stores:['d2','d3','d5','d6','d7','d11'],
+ participants:[{id:'head',kind:'actor',label:'Head Lab',roles:['Head Laboratory']},{id:'rep',kind:'actor',label:'Class\nRepresentative',roles:['Class Representative']},{id:'system',kind:'system',label:'Laboratory\nWeb System'},{id:'db',kind:'database',label:'Database\nD2/3/5/6/7/11'}],
+ precondition:'Head identifies the responsible student before creating clearance. Class Rep only views own-class clearance status.',
+ steps:[alt(
+  branch('Head administration: schedule / daily task / clearance',[call('head','system','Submit action; identify student for clearance'),...db('Validate applicable details; save action','Update result',['d2','d3','d5','d6','d7'],true),reply('system','head','Schedule / task / clearance result')]),
+  branch('Class Rep. views class student clearance',[call('rep','system','View student clearance status'),...db('Read scoped clearance','Clearance status',['d6']),reply('system','rep','Display student clearance status')]),
+  branch('Head views / exports end-term report',[call('head','system','Open term logs'),par(
+   branch('Completed usage',[...db('Read completed D11 sessions','Usage evidence',['d11'])]),branch('Recorded item evidence',[...db('Read D11 item use and quantity','Item evidence',['d11'])])
+  ),alt(
+   branch('Completed records found',[self('Compute item shares, use/unit, top 5, sessions'),reply('system','head','Four tables / Recent Activity; optional export')]),
+   branch('No completed records',[reply('system','head','No records for selected term')])
+  )])
+ )],
+ note:'End-term reporting uses D11 only and includes four tables: Average Equipment Use, Equipment Average Use, Top 5 Equipment & Consumables, and Laboratory Frequency Usage, with supporting Recent Activity. Daily tasks, disposal, outstanding clearances and appendix are excluded.'});
+
+root.SystemSequenceModels=diagrams;
+if(typeof module!=='undefined')module.exports=diagrams;
+})(typeof window==='undefined'?globalThis:window);

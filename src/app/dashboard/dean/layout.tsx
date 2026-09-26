@@ -1,5 +1,8 @@
-import PlaceholderDashboardShell from "@/components/dashboard/placeholder-dashboard-shell";
+import LabDashboardShell from "@/components/dashboard/lab-dashboard-shell";
+import { requireDemoRole } from "@/features/demo-auth/session";
+import "@/features/lab-dashboard/dashboard.css";
 
-export default function DeanLayout({ children }: { children: React.ReactNode }) {
-  return <PlaceholderDashboardShell profileHref="/dashboard/dean/profile">{children}</PlaceholderDashboardShell>;
+export default async function DeanLayout({ children }: { children: React.ReactNode }) {
+  await requireDemoRole("dean");
+  return <LabDashboardShell role="dean">{children}</LabDashboardShell>;
 }

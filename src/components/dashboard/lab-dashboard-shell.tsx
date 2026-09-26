@@ -21,7 +21,7 @@ function Sidebar({ role, onNavigate }: { role: DashboardRole; onNavigate?: () =>
   const pathname = usePathname();
   return <>
     <Link href={dashboardHref(role, "")} className="lab-brand" onClick={onNavigate} aria-label="NU Fairview dashboard"><img src="/icon.svg" width="82" height="82" alt="NU Fairview crest" /><strong>NU Fairview</strong><span>Laboratory Services</span></Link>
-    <nav className="lab-nav" aria-label={`${role === "faculty" ? "Faculty" : "Class Representative"} navigation`}>
+    <nav className="lab-nav" aria-label={`${role === "dean" ? "Dean" : role === "faculty" ? "Faculty" : "Class Representative"} navigation`}>
       {roleNavigation[role].map(({ slug, label, icon }) => {
         const href = dashboardHref(role, slug);
         return <Link key={slug} href={href} onClick={onNavigate} className={`lab-nav-link ${pathname === href ? "is-active" : ""}`} aria-current={pathname === href ? "page" : undefined}><LabIcon name={icon} /><span>{label}</span></Link>;
@@ -36,6 +36,6 @@ export default function LabDashboardShell({ role, children }: { role: DashboardR
   return <DemoSessionMonitor role={role}><div className="lab-dashboard-shell">
     <aside className="lab-sidebar"><Sidebar role={role} /></aside>
     <dialog ref={mobileMenu} className="lab-mobile-nav" aria-label="Dashboard navigation" onClick={(event) => { if (event.target === event.currentTarget) mobileMenu.current?.close(); }}><button className="lab-mobile-close lab-icon-button" onClick={() => mobileMenu.current?.close()} aria-label="Close navigation"><LabIcon name="close" /></button><Sidebar role={role} onNavigate={() => mobileMenu.current?.close()} /></dialog>
-    <div className="lab-workspace"><header className="lab-topbar"><button className="lab-menu-button lab-icon-button" aria-label="Open navigation" onClick={() => mobileMenu.current?.showModal()}><LabIcon name="menu" /></button><p><span>Physics and Circuits </span>Laboratory Management<span> System</span></p><div className="lab-topbar-actions"><Link href={dashboardHref(role, "notifications")} className="lab-icon-button lab-topbar-notifications" aria-label={`${dashboardSnapshots[role].notificationCount} demo notifications`}><LabIcon name="bell" /><span /></Link><span className="lab-topbar-separator" /><ProfileMenu profileHref={dashboardHref(role, "profile")} /></div></header>{children}</div>
+    <div className="lab-workspace"><header className="lab-topbar"><button className="lab-menu-button lab-icon-button" aria-label="Open navigation" onClick={() => mobileMenu.current?.showModal()}><LabIcon name="menu" /></button><p><span>Physics and Circuits </span>Laboratory Management<span> System</span></p><div className="lab-topbar-actions">{role !== "dean" && <Link href={dashboardHref(role, "notifications")} className="lab-icon-button lab-topbar-notifications" aria-label={`${dashboardSnapshots[role].notificationCount} demo notifications`}><LabIcon name="bell" /><span /></Link>}<span className="lab-topbar-separator" /><ProfileMenu profileHref={dashboardHref(role, "profile")} /></div></header>{children}</div>
   </div></DemoSessionMonitor>;
 }

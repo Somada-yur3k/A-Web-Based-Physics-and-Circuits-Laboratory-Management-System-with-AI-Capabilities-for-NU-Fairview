@@ -13,7 +13,7 @@ export type DashboardSnapshot = {
 };
 
 const shared = { asOf: "2026-03-07", notificationCount: 3 };
-export const dashboardSnapshots: Record<DashboardRole, DashboardSnapshot> = {
+export const dashboardSnapshots: Record<Exclude<DashboardRole, "dean">, DashboardSnapshot> = {
   faculty: {
     ...shared,
     title: "Circuits Laboratory Faculty Dashboard",

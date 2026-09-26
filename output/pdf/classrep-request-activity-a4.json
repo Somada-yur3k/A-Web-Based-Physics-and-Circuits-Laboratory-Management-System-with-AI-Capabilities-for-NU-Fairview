@@ -1,0 +1,607 @@
+{
+  "nodes": {
+    "start": {
+      "id": "start",
+      "kind": "initial",
+      "x": 297.5,
+      "y": 94,
+      "w": 12,
+      "h": 12,
+      "label": ""
+    },
+    "laboratory": {
+      "id": "laboratory",
+      "kind": "action",
+      "x": 297.5,
+      "y": 132,
+      "w": 155,
+      "h": 34,
+      "label": "Choose laboratory;\nidentify assigned class"
+    },
+    "request-type": {
+      "id": "request-type",
+      "kind": "decision",
+      "x": 297.5,
+      "y": 190,
+      "w": 104,
+      "h": 46,
+      "label": "Group or\nStudent Only?"
+    },
+    "group": {
+      "id": "group",
+      "kind": "action",
+      "x": 145,
+      "y": 252,
+      "w": 155,
+      "h": 34,
+      "label": "Select one or more students\nfrom the assigned class"
+    },
+    "student-only": {
+      "id": "student-only",
+      "kind": "action",
+      "x": 445,
+      "y": 252,
+      "w": 155,
+      "h": 34,
+      "label": "Select exactly one student\nfrom the assigned class"
+    },
+    "type-merge": {
+      "id": "type-merge",
+      "kind": "merge",
+      "x": 297.5,
+      "y": 299,
+      "w": 14,
+      "h": 14,
+      "label": ""
+    },
+    "schedule-type": {
+      "id": "schedule-type",
+      "kind": "action",
+      "x": 297.5,
+      "y": 326,
+      "w": 155,
+      "h": 28,
+      "label": "Choose Schedule Type"
+    },
+    "input-merge": {
+      "id": "input-merge",
+      "kind": "merge",
+      "x": 297.5,
+      "y": 356,
+      "w": 14,
+      "h": 14,
+      "label": ""
+    },
+    "room-time": {
+      "id": "room-time",
+      "kind": "action",
+      "x": 297.5,
+      "y": 386,
+      "w": 155,
+      "h": 34,
+      "label": "Select room, date and time;\ncheck schedule availability"
+    },
+    "review": {
+      "id": "review",
+      "kind": "action",
+      "x": 297.5,
+      "y": 430,
+      "w": 155,
+      "h": 34,
+      "label": "Add equipment / materials;\nreview request information"
+    },
+    "valid": {
+      "id": "valid",
+      "kind": "decision",
+      "x": 297.5,
+      "y": 483,
+      "w": 104,
+      "h": 46,
+      "label": "Request\nvalid?"
+    },
+    "correct": {
+      "id": "correct",
+      "kind": "action",
+      "x": 100,
+      "y": 483,
+      "w": 155,
+      "h": 34,
+      "label": "Correct request details"
+    },
+    "save": {
+      "id": "save",
+      "kind": "action",
+      "x": 297.5,
+      "y": 532,
+      "w": 185,
+      "h": 34,
+      "label": "Save valid request as Pending;\ncreate reservation hold"
+    },
+    "on-schedule": {
+      "id": "on-schedule",
+      "kind": "decision",
+      "x": 297.5,
+      "y": 586,
+      "w": 104,
+      "h": 46,
+      "label": "On-Schedule?"
+    },
+    "faculty-available": {
+      "id": "faculty-available",
+      "kind": "decision",
+      "x": 480,
+      "y": 586,
+      "w": 104,
+      "h": 46,
+      "label": "Assigned Faculty\navailable?"
+    },
+    "faculty-merge": {
+      "id": "faculty-merge",
+      "kind": "merge",
+      "x": 145,
+      "y": 643,
+      "w": 14,
+      "h": 14,
+      "label": ""
+    },
+    "faculty": {
+      "id": "faculty",
+      "kind": "action",
+      "x": 145,
+      "y": 683,
+      "w": 175,
+      "h": 40,
+      "label": "Assigned Faculty reviews;\nApprove or Reject"
+    },
+    "dean": {
+      "id": "dean",
+      "kind": "action",
+      "x": 445,
+      "y": 683,
+      "w": 175,
+      "h": 40,
+      "label": "Dean reviews directly;\nApprove or Reject"
+    },
+    "decision-merge": {
+      "id": "decision-merge",
+      "kind": "merge",
+      "x": 297.5,
+      "y": 730,
+      "w": 14,
+      "h": 14,
+      "label": ""
+    },
+    "final-status": {
+      "id": "final-status",
+      "kind": "action",
+      "x": 297.5,
+      "y": 772,
+      "w": 270,
+      "h": 44,
+      "label": "Save final decision; notify Class Rep.\nApproved: allow laboratory processing\nRejected: release reservation hold"
+    },
+    "end": {
+      "id": "end",
+      "kind": "final",
+      "x": 297.5,
+      "y": 812,
+      "w": 15,
+      "h": 15,
+      "label": ""
+    }
+  },
+  "routes": [
+    {
+      "from": "start",
+      "to": "laboratory",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          100
+        ],
+        [
+          297.5,
+          115
+        ]
+      ]
+    },
+    {
+      "from": "laboratory",
+      "to": "request-type",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          149
+        ],
+        [
+          297.5,
+          167
+        ]
+      ]
+    },
+    {
+      "from": "request-type",
+      "to": "group",
+      "guard": "Group",
+      "points": [
+        [
+          245.5,
+          190
+        ],
+        [
+          145,
+          190
+        ],
+        [
+          145,
+          235
+        ]
+      ]
+    },
+    {
+      "from": "request-type",
+      "to": "student-only",
+      "guard": "Student Only",
+      "points": [
+        [
+          349.5,
+          190
+        ],
+        [
+          445,
+          190
+        ],
+        [
+          445,
+          235
+        ]
+      ]
+    },
+    {
+      "from": "group",
+      "to": "type-merge",
+      "guard": "",
+      "points": [
+        [
+          145,
+          269
+        ],
+        [
+          145,
+          299
+        ],
+        [
+          290.5,
+          299
+        ]
+      ]
+    },
+    {
+      "from": "student-only",
+      "to": "type-merge",
+      "guard": "",
+      "points": [
+        [
+          445,
+          269
+        ],
+        [
+          445,
+          299
+        ],
+        [
+          304.5,
+          299
+        ]
+      ]
+    },
+    {
+      "from": "type-merge",
+      "to": "schedule-type",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          306
+        ],
+        [
+          297.5,
+          312
+        ]
+      ]
+    },
+    {
+      "from": "schedule-type",
+      "to": "input-merge",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          340
+        ],
+        [
+          297.5,
+          349
+        ]
+      ]
+    },
+    {
+      "from": "input-merge",
+      "to": "room-time",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          363
+        ],
+        [
+          297.5,
+          369
+        ]
+      ]
+    },
+    {
+      "from": "room-time",
+      "to": "review",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          403
+        ],
+        [
+          297.5,
+          413
+        ]
+      ]
+    },
+    {
+      "from": "review",
+      "to": "valid",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          447
+        ],
+        [
+          297.5,
+          460
+        ]
+      ]
+    },
+    {
+      "from": "valid",
+      "to": "correct",
+      "guard": "No",
+      "points": [
+        [
+          245.5,
+          483
+        ],
+        [
+          177.5,
+          483
+        ]
+      ]
+    },
+    {
+      "from": "correct",
+      "to": "input-merge",
+      "guard": "",
+      "points": [
+        [
+          22.5,
+          483
+        ],
+        [
+          16,
+          483
+        ],
+        [
+          16,
+          356
+        ],
+        [
+          290.5,
+          356
+        ]
+      ]
+    },
+    {
+      "from": "valid",
+      "to": "save",
+      "guard": "Yes",
+      "points": [
+        [
+          297.5,
+          506
+        ],
+        [
+          297.5,
+          515
+        ]
+      ]
+    },
+    {
+      "from": "save",
+      "to": "on-schedule",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          549
+        ],
+        [
+          297.5,
+          563
+        ]
+      ]
+    },
+    {
+      "from": "on-schedule",
+      "to": "faculty-merge",
+      "guard": "On-Schedule",
+      "points": [
+        [
+          245.5,
+          586
+        ],
+        [
+          145,
+          586
+        ],
+        [
+          145,
+          636
+        ]
+      ]
+    },
+    {
+      "from": "on-schedule",
+      "to": "faculty-available",
+      "guard": "Out-of-Schedule",
+      "points": [
+        [
+          349.5,
+          586
+        ],
+        [
+          428,
+          586
+        ]
+      ]
+    },
+    {
+      "from": "faculty-available",
+      "to": "faculty-merge",
+      "guard": "Available",
+      "points": [
+        [
+          480,
+          609
+        ],
+        [
+          480,
+          643
+        ],
+        [
+          152,
+          643
+        ]
+      ]
+    },
+    {
+      "from": "faculty-available",
+      "to": "dean",
+      "guard": "Unavailable",
+      "points": [
+        [
+          532,
+          586
+        ],
+        [
+          565,
+          586
+        ],
+        [
+          565,
+          650
+        ],
+        [
+          445,
+          650
+        ],
+        [
+          445,
+          663
+        ]
+      ]
+    },
+    {
+      "from": "faculty-merge",
+      "to": "faculty",
+      "guard": "",
+      "points": [
+        [
+          145,
+          650
+        ],
+        [
+          145,
+          663
+        ]
+      ]
+    },
+    {
+      "from": "faculty",
+      "to": "decision-merge",
+      "guard": "",
+      "points": [
+        [
+          145,
+          703
+        ],
+        [
+          145,
+          730
+        ],
+        [
+          290.5,
+          730
+        ]
+      ]
+    },
+    {
+      "from": "dean",
+      "to": "decision-merge",
+      "guard": "",
+      "points": [
+        [
+          445,
+          703
+        ],
+        [
+          445,
+          730
+        ],
+        [
+          304.5,
+          730
+        ]
+      ]
+    },
+    {
+      "from": "decision-merge",
+      "to": "final-status",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          737
+        ],
+        [
+          297.5,
+          750
+        ]
+      ]
+    },
+    {
+      "from": "final-status",
+      "to": "end",
+      "guard": "",
+      "points": [
+        [
+          297.5,
+          794
+        ],
+        [
+          297.5,
+          804.5
+        ]
+      ]
+    }
+  ]
+}

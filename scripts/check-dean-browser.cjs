@@ -1,0 +1,104 @@
+// Build first; PLAYWRIGHT_MODULE may point to an installed Playwright module.
+const assert = require('node:assert/strict');
+const { spawn } = require('node:child_process');
+const { mkdirSync } = require('node:fs');
+const path = require('node:path');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const root = path.resolve(__dirname, '..');
+const base = 'http://localhost:3116';
+const server = spawn(process.execPath, [require.resolve('next/dist/bin/next'), 'start', '-p', '3116', '-H', 'localhost'], { cwd: root, stdio: 'ignore', windowsHide: true });
+const schedule = { classId: 'circuits-electronics', roomId: 'circuits-301', requestFor: 'ONE_TIME', date: '2026-03-13', startTime: '11:30', endTime: '12:30' };
+const classrepDraft = { laboratory: 'circuits', requestType: 'STUDENT_ONLY', students: [{ name: 'Dean Flow Student', studentId: '2024-1031816' }], scheduleType: 'OUT_OF_SCHEDULE', schedule, items: [{ rowId: 1, name: 'Breadboard', kind: 'Equipment', quantity: 1, catalogId: 'breadboard' }], notes: 'Dean flow verification', approver: 'DEAN' };
+(async () => {
+  let browser;
+  try {
+    for (let attempt = 0; ; attempt++) { try { if ((await fetch(base)).ok) break; } catch {} if (attempt > 100 || server.exitCode !== null) throw new Error('Test server unavailable'); await new Promise(resolve => setTimeout(resolve, 100)); }
+    await new Promise((resolve, reject) => { const check = spawn(process.execPath, ['scripts/check-demo-auth.mjs'], { cwd: root, env: { ...process.env, DEMO_BASE_URL: base }, stdio: 'inherit', windowsHide: true }); check.once('error', reject); check.once('exit', code => code === 0 ? resolve() : reject(new Error('Demo auth checks failed'))); });
+    browser = await chromium.launch({ channel: 'msedge', headless: true });
+    const anonymous = await browser.newContext();
+    assert.equal((await anonymous.request.get(base + '/api/demo/requests')).status(), 401);
+    assert.equal((await anonymous.request.post(base + '/api/demo/requests/x/decision', { data: { decision: 'Approved', remarks: '' } })).status(), 401);
+    const rep = await browser.newContext(), faculty = await browser.newContext(), dean = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    for (const [context, accountId, password] of [[rep, '2024-1031816', 'ClassrepDemo!2026'], [faculty, 'faculty@nu-fairview.edu.ph', 'FacultyDemo!2026'], [dean, 'dean@nu-fairview.edu.ph', 'DeanDemo!2026']]) assert.equal((await context.request.post(base + '/api/demo/login', { data: { accountId, password } })).status(), 200);
+    async function submit(context, draft) { const response = await context.request.post(base + '/api/demo/requests', { data: draft }); const data = await response.json(); assert.equal(response.status(), 201, JSON.stringify(data)); return data.request; }
+    assert.equal((await rep.request.post(base + '/api/demo/requests', { data: null })).status(), 400);
+    assert.equal((await rep.request.post(base + '/api/demo/requests', { data: { ...classrepDraft, students: 'invalid' } })).status(), 400);
+    assert.equal((await dean.request.post(base + '/api/demo/requests', { data: classrepDraft })).status(), 403);
+    assert.equal((await rep.request.post(base + '/api/demo/requests', { headers: { Origin: 'https://example.invalid' }, data: classrepDraft })).status(), 403);
+    const live = await submit(rep, { ...classrepDraft, requester: { accountId: 'spoof' }, recipient: 'FACULTY', status: 'Approved', reference: 'spoof' });
+    assert.equal(live.recipient, 'DEAN'); assert.equal(live.status, 'Pending Dean Approval'); assert.equal(live.requester.accountId, '2024-1031816'); assert.notEqual(live.reference, 'spoof');
+    const routedFaculty = await submit(rep, { ...classrepDraft, approver: 'FACULTY' });
+    const on = await submit(rep, { ...classrepDraft, scheduleType: 'ON_SCHEDULE', schedule: { ...schedule, date: '2026-03-10', startTime: '13:00', endTime: '16:00' } });
+    assert.equal(on.recipient, 'FACULTY');
+    const facDraft = { laboratory: 'circuits', activityType: 'NON_LABORATORY_ACTIVITY', scheduleType: 'OUT_OF_SCHEDULE', schedule, items: [], notes: 'Faculty rejection verification' };
+    const fac = await submit(faculty, facDraft);
+    const facOn = await submit(faculty, { ...facDraft, scheduleType: 'ON_SCHEDULE', schedule: on.snapshot.schedule });
+    assert.equal(facOn.recipient, null); assert.equal(facOn.status, 'Awaiting Reservation');
+    assert.equal((await faculty.request.post(base + '/api/demo/requests', { data: { ...facDraft, activityType: 'LABORATORY_ACTIVITY' } })).status(), 400);
+    const queue = (await (await dean.request.get(base + '/api/demo/requests')).json()).requests;
+    assert.ok(queue.some(record => record.reference === live.reference)); assert.ok(queue.some(record => record.reference === fac.reference));
+    assert.ok(!queue.some(record => [on.reference, routedFaculty.reference, facOn.reference].includes(record.reference)));
+    const own = (await (await rep.request.get(base + '/api/demo/requests')).json()).requests;
+    assert.ok(own.every(record => record.requester.accountId === '2024-1031816'));
+    const decisionPath = reference => `${base}/api/demo/requests/${reference}/decision`;
+    assert.equal((await rep.request.post(decisionPath(live.reference), { data: { decision: 'Approved', remarks: '' } })).status(), 403);
+    assert.equal((await dean.request.post(decisionPath(routedFaculty.reference), { data: { decision: 'Approved', remarks: '' } })).status(), 404);
+    assert.equal((await dean.request.post(decisionPath(live.reference), { data: { decision: 'Rejected', remarks: '  ' } })).status(), 400);
+    assert.equal((await dean.request.post(decisionPath(live.reference), { data: { decision: 'Unknown', remarks: '' } })).status(), 400);
+    const page = await dean.newPage(), errors = []; page.on('pageerror', error => errors.push(error.message));
+    await page.goto(base + '/dashboard/dean');
+    await page.getByRole('heading', { name: 'Dean Dashboard', exact: true }).waitFor();
+    await page.locator('.dean-record').filter({ hasText: live.reference }).waitFor();
+    mkdirSync(path.join(root, 'artifacts'), { recursive: true });
+    for (const width of [320, 390, 600, 768, 1024, 1440, 2560, 3440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `Queue fits ${width}`);
+      assert.ok((await page.locator('.dean-page').boundingBox()).width <= 1361);
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByLabel('Search requests', { exact: true }).fill(live.reference);
+    assert.equal(await page.locator('.dean-record').count(), 1);
+    await page.getByRole('button', { name: 'Review', exact: true }).click();
+    const dialog = page.getByRole('dialog'); await dialog.waitFor();
+    assert.match(await dialog.innerText(), /Dean Flow Student/); assert.match(await dialog.innerText(), /Breadboard/);
+    await dialog.getByRole('button', { name: 'Reject Request', exact: true }).click();
+    await dialog.getByRole('alert').waitFor();
+    for (const width of [320, 390, 768, 1440, 3440]) { await page.setViewportSize({ width, height: 1000 }); assert.equal(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth), true, `Review fits ${width}`); assert.ok((await dialog.locator('.review-equipment-copy').boundingBox()).width > 80, `Equipment text stays readable at ${width}`); }
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.screenshot({ path: path.join(root, 'artifacts/dean-review-mobile.png') });
+    await dialog.getByRole('button', { name: 'Approve Request', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Confirm Decision', exact: true }).click();
+    await dialog.getByRole('heading', { name: 'Approved by Dean Demo' }).waitFor();
+    assert.equal(await dialog.getByRole('button', { name: 'Approve Request', exact: true }).count(), 0);
+    assert.equal((await dean.request.post(decisionPath(live.reference), { data: { decision: 'Rejected', remarks: 'second' } })).status(), 409);
+    await dialog.getByRole('button', { name: 'Close review' }).click();
+    await page.goto(base + '/dashboard/dean/request-review');
+    await page.locator('.dean-record').filter({ hasText: fac.reference }).getByRole('button', { name: 'Review', exact: true }).click();
+    await dialog.getByLabel('Decision remarks', { exact: false }).fill('Please revise the activity schedule.');
+    await dialog.getByRole('button', { name: 'Reject Request', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Confirm Decision', exact: true }).click();
+    await dialog.getByRole('heading', { name: 'Rejected by Dean Demo' }).waitFor();
+    await dialog.getByRole('button', { name: 'Close review' }).click();
+    await page.goto(base + '/dashboard/dean/decision-history');
+    await page.locator('.dean-record').filter({ hasText: live.reference }).waitFor();
+    await page.locator('.dean-record').filter({ hasText: fac.reference }).waitFor();
+    await page.reload(); await page.locator('.dean-record').filter({ hasText: live.reference }).waitFor();
+    const repPage = await rep.newPage(); await repPage.goto(base + '/dashboard/classrep/my-reservations');
+    assert.match(await repPage.locator('.dean-record').filter({ hasText: live.reference }).innerText(), /Approved/);
+    const facPage = await faculty.newPage(); await facPage.goto(base + '/dashboard/faculty/reservation-status');
+    await facPage.locator('.dean-record').filter({ hasText: fac.reference }).getByRole('button', { name: 'View Details' }).click();
+    await facPage.getByText('Please revise the activity schedule.', { exact: true }).waitFor();
+    assert.equal(await facPage.getByRole('button', { name: 'Approve Request' }).count(), 0);
+    await page.goto(base + '/dashboard/dean'); await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.locator('.dean-record').first().waitFor(); await page.screenshot({ path: path.join(root, 'artifacts/dean-dashboard-desktop.png'), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Dashboard navigation' }).getByRole('link', { name: 'Request Review', exact: true }).click();
+    await page.waitForURL(base + '/dashboard/dean/request-review');
+    await page.getByRole('button', { name: 'Open account menu', exact: true }).click();
+    await page.getByRole('menuitem', { name: 'Log-out', exact: true }).click(); await page.waitForURL(base + '/');
+    assert.equal((await dean.request.get(base + '/api/demo/requests')).status(), 401);
+    assert.deepEqual(errors, []);
+    console.log('Dean checks passed: six-role auth, derived routing, validation, access controls, mobile/desktop review, approval/rejection, decision history, requester status, and logout.');
+  } finally { if (browser) await browser.close(); server.kill(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,3 +1,6 @@
-export default function PhysicsLaboratoryProfilePage() {
-  return <main className="placeholder-profile-page" aria-label="Physics Laboratory Profile" />;
+import { requireDemoRole } from "@/features/demo-auth/session";
+
+export default async function PhysicsLaboratoryProfilePage() {
+  await requireDemoRole("physics-staff");
+  return <main className="admin-blank-page" aria-label="Physics Laboratory Profile" />;
 }

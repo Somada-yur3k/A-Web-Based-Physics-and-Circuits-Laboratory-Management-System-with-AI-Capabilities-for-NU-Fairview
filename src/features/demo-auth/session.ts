@@ -11,9 +11,12 @@ export const DEMO_SESSION_SECONDS = 8 * 60 * 60;
 // Deliberately public, fixed demo credentials. Replace this module with
 // Supabase authentication before connecting any real accounts or data.
 const demoCredentials = [
+  { role: "dean", accountId: "dean@nu-fairview.edu.ph", password: "DeanDemo!2026", displayName: "Dean Demo", initials: "DN" },
   { role: "headlab", accountId: "headlab@nu-fairview.edu.ph", password: "HeadlabDemo!2026", displayName: "Head Laboratory Demo", initials: "HL" },
   { role: "faculty", accountId: "faculty@nu-fairview.edu.ph", password: "FacultyDemo!2026", displayName: "Faculty Demo", initials: "FD" },
   { role: "classrep", accountId: "2024-1031816", password: "ClassrepDemo!2026", displayName: "Class Representative Demo", initials: "CR" },
+  { role: "physics-staff", accountId: "physics@nu-fairview.edu.ph", password: "PhysicsDemo!2026", displayName: "Physics Laboratory Staff Demo", initials: "PS" },
+  { role: "circuits-staff", accountId: "circuits@nu-fairview.edu.ph", password: "CircuitsDemo!2026", displayName: "Circuits Laboratory Staff Demo", initials: "CS" },
 ] satisfies (Omit<DemoUser, "dashboardPath"> & { password: string })[];
 
 type StoredSession = { accountId: string; expiresAt: number };

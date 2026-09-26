@@ -1,6 +1,7 @@
 import { demoRequestClass } from "./request-participants";
 import { demoAssignedClasses, displayDate, displayTime, laboratoryRooms, timeToMinutes } from "./room-availability";
 import { approvalRecipient, type ApprovalRecipient, type ServiceRequestDraft } from "./request-review";
+import RequestEquipmentSummary from "./request-equipment-summary";
 
 type Props = {
   draft: ServiceRequestDraft;
@@ -31,11 +32,11 @@ export default function RequestInformationReview({ draft, confirmed, locked = fa
     </div>
     <section className="request-review-card" aria-labelledby="review-students-heading">
       <header><h3 id="review-students-heading">Participating Students ({draft.students.length})</h3>{editButton(2, "participating students")}</header>
-      <div className="request-review-table-scroll" tabIndex={0}><table><thead><tr><th scope="col">Student Name</th><th scope="col">NU Student ID</th><th scope="col">Section</th></tr></thead><tbody>{draft.students.map((student, index) => <tr key={index}><td>{student.name.trim()}</td><td>{student.studentId.trim()}</td><td>{demoRequestClass.section}</td></tr>)}</tbody></table></div>
+      <div className="request-review-table-scroll" tabIndex={0}><table className="request-review-students-table"><thead><tr><th scope="col">Student Name</th><th scope="col">NU Student ID</th><th scope="col">Section</th></tr></thead><tbody>{draft.students.map((student, index) => <tr key={index}><td data-label="Student Name">{student.name.trim()}</td><td data-label="NU Student ID">{student.studentId.trim()}</td><td data-label="Section">{demoRequestClass.section}</td></tr>)}</tbody></table></div>
     </section>
     <section className="request-review-card" aria-labelledby="review-items-heading">
       <header><h3 id="review-items-heading">Equipment &amp; Materials</h3>{editButton(5, "equipment and materials")}</header>
-      {draft.items.length ? <div className="request-review-table-scroll" tabIndex={0}><table><thead><tr><th scope="col">Type</th><th scope="col">Item Name</th><th scope="col">Quantity</th></tr></thead><tbody>{draft.items.map((item) => <tr key={item.rowId}><td>{item.kind}</td><td>{item.name.trim()}</td><td>{item.quantity}</td></tr>)}</tbody></table></div> : <p className="request-review-note">No equipment or materials requested.</p>}
+      <RequestEquipmentSummary items={draft.items} />
       <h4>Notes / Special Setup</h4><p className="request-review-notes">{draft.notes.trim() || "No additional notes."}</p>
     </section>
     <section className="request-review-card request-review-approval" aria-labelledby="review-approval-heading">
@@ -50,6 +51,6 @@ export default function RequestInformationReview({ draft, confirmed, locked = fa
       <p className="request-review-recipient" role="status">{recipient ? <>For approval by: <strong>{recipient.role === "FACULTY" ? `${recipient.name} (Faculty)` : "Dean"}</strong></> : "Select Faculty or Dean before submitting."}</p>
     </section>
     <label className="request-review-confirm"><input type="checkbox" checked={confirmed} disabled={locked} onChange={(event) => onConfirmedChange(event.target.checked)} /><span>I have reviewed the request details and confirm that they are correct.</span></label>
-    <p className="request-review-note">Demo only: submitting creates a preview on this page. It does not send a request to Faculty or Dean, reserve a room, or save after leaving this page.</p>
+    <p className="request-review-note">Demo only: submissions are saved temporarily until the server restarts. Requests routed to the Dean appear in the Dean review queue. No room is reserved and no notification is sent.</p>
   </div>;
 }

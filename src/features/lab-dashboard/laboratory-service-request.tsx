@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import LabIcon from "@/components/dashboard/lab-icon";
+import RequestLaboratoryChoices from "./request-laboratory-choices";
 import RequestStudentFields from "./request-student-fields";
 import RequestRoomAvailability from "./request-room-availability";
 import RequestEquipmentFields from "./request-equipment-fields";
 import RequestInformationReview from "./request-information-review";
+import { addCatalogItem, itemsForLaboratory } from "./equipment-catalog";
+import useRequestProgress from "./use-request-progress";
 import { createScheduleDraft, scheduleDraftError, type ScheduleDraft } from "./room-availability";
-import { createDemoRequestSnapshot, requestedItemsError, serviceRequestError, type ApprovalRecipient, type DemoRequestSnapshot, type RequestedItem, type ServiceRequestDraft } from "./request-review";
+import { requestedItemsError, serviceRequestError, type ApprovalRecipient, type DemoRequestSnapshot, type RequestedItem, type ServiceRequestDraft } from "./request-review";
 import { areParticipantDetailsValid, type GroupStudentRow, type RequestType, type StudentDetails } from "./request-participants";
 import "./laboratory-service-request.css";
 import "./request-information-review.css";
@@ -21,11 +24,6 @@ const requestSteps = [
   "Equipment & Materials",
   "Review Information",
 ];
-
-const laboratories = [
-  { id: "physics", name: "Physics Laboratory", description: "Request laboratory time and services for physics experiments, demonstrations, and related activities." },
-  { id: "circuits", name: "Circuits Laboratory", description: "Request laboratory time and services for electronics, circuits, and related experiments." },
-] as const;
 
 const requestTypes = [
   {
@@ -61,21 +59,6 @@ const scheduleTypes = [
   },
 ] as const;
 
-function LaboratoryIcon({ laboratory }: { laboratory: "physics" | "circuits" }) {
-  return <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {laboratory === "physics" ? <>
-      <ellipse cx="32" cy="32" rx="25" ry="10" />
-      <ellipse cx="32" cy="32" rx="25" ry="10" transform="rotate(60 32 32)" />
-      <ellipse cx="32" cy="32" rx="25" ry="10" transform="rotate(120 32 32)" />
-      <circle cx="32" cy="32" r="3" fill="currentColor" stroke="none" />
-    </> : <>
-      <rect x="17" y="15" width="30" height="34" rx="3" />
-      <path d="M24 7v8M32 7v8M40 7v8M24 49v8M32 49v8M40 49v8M9 23h8M9 32h8M9 41h8M47 23h8M47 32h8M47 41h8" />
-      <path d="M26 25h2M36 25h2M26 34h2M36 34h2M26 42h2M36 42h2" strokeWidth="4" />
-    </>}
-  </svg>;
-}
-
 export default function LaboratoryServiceRequest() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [laboratory, setLaboratory] = useState<"physics" | "circuits">("circuits");
@@ -91,14 +74,18 @@ export default function LaboratoryServiceRequest() {
   const [approver, setApprover] = useState<ApprovalRecipient | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [receipt, setReceipt] = useState<{ reference: string; snapshot: DemoRequestSnapshot } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const submissionLock = useRef(false);
   const receiptHeading = useRef<HTMLHeadingElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const activeStep = useRef<HTMLLIElement>(null);
   const previousStep = useRef(step);
+  useRequestProgress(activeStep, step);
   const activeStudents = requestType === "GROUP" ? groupStudents : requestType === "STUDENT_ONLY" ? [individualStudent] : [];
   const canContinueToSchedule = areParticipantDetailsValid(requestType, activeStudents);
   const scheduleError = scheduleDraftError(laboratory, scheduleType, scheduleDraft);
-  const itemsError = requestedItemsError(items, notes);
+  const itemsError = requestedItemsError(items, notes, laboratory);
   const draft: ServiceRequestDraft = { laboratory, requestType, students: activeStudents, scheduleType, schedule: scheduleDraft, items, notes, approver };
   const reviewError = serviceRequestError(draft);
   const canSubmit = confirmed && !reviewError && !receipt;
@@ -111,13 +98,20 @@ export default function LaboratoryServiceRequest() {
     setStep(target);
   }
 
-  function submitDemoRequest() {
-    if (!confirmed || receipt || serviceRequestError(draft)) return;
-    const snapshot = createDemoRequestSnapshot(draft);
-    setReceipt({ reference: `DEMO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`, snapshot });
+  async function submitDemoRequest() {
+    if (submissionLock.current || !confirmed || receipt || serviceRequestError(draft)) return;
+    submissionLock.current = true; setSubmitting(true); setSubmitError("");
+    try {
+      const response = await fetch("/api/demo/requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not submit the request.");
+      setReceipt({ reference: data.request.reference, snapshot: data.request.snapshot });
+    } catch (error) { setSubmitError(error instanceof Error ? error.message : "Could not submit the request. Try again."); }
+    finally { submissionLock.current = false; setSubmitting(false); }
   }
 
   function startNewRequest() {
+    setSubmitError("");
     setReceipt(null);
     setConfirmed(false);
     setApprover(null);
@@ -139,9 +133,10 @@ export default function LaboratoryServiceRequest() {
     setGroupStudents((previous) => [...previous, row]);
   }
 
-  function addRequestedItem() {
-    const item: RequestedItem = { rowId: nextItemRowId.current++, kind: "Equipment", name: "", quantity: 1 };
-    setItems((previous) => [...previous, item]);
+  function addRequestedItem(catalogId?: string) {
+    const rowId = nextItemRowId.current++;
+    setItems((previous) => catalogId ? addCatalogItem(previous, catalogId, laboratory, rowId) : [...previous, { rowId, kind: "Equipment", name: "", quantity: 1 }]);
+    setConfirmed(false);
   }
 
   useEffect(() => {
@@ -176,14 +171,7 @@ export default function LaboratoryServiceRequest() {
         <p>{stepDescriptions[step - 1]}</p>
       </header>
 
-      {step === 1 ? <fieldset className="request-laboratory-options">
-        <legend className="sr-only">Choose a laboratory</legend>
-        {laboratories.map(({ id, name, description }) => <label key={id} className={`request-laboratory-option ${laboratory === id ? "is-selected" : ""}`}>
-          <input type="radio" name="laboratory" value={id} checked={laboratory === id} onChange={() => { if (id !== laboratory) { setLaboratory(id); setScheduleDraft(createScheduleDraft(id, scheduleType, scheduleDraft.date)); } }} />
-          <span className="request-laboratory-icon"><LaboratoryIcon laboratory={id} /></span>
-          <span className="request-laboratory-copy"><strong>{name}</strong><span>{description}</span></span>
-        </label>)}
-      </fieldset> : step === 2 ? <><fieldset className="request-type-options">
+      {step === 1 ? <RequestLaboratoryChoices laboratory={laboratory} onChange={(id) => { if (id !== laboratory) { setLaboratory(id); setScheduleDraft(createScheduleDraft(id, scheduleType, scheduleDraft.date)); setItems((previous) => itemsForLaboratory(previous, id)); setApprover(null); setConfirmed(false); } }} /> : step === 2 ? <><fieldset className="request-type-options">
         <legend className="sr-only">Select a request type</legend>
         {requestTypes.map(({ id, name, icon, description, guidance }) => <label key={id} className={`request-type-option ${requestType === id ? "is-selected" : ""}`}>
           <input type="radio" name="request-type" value={id} checked={requestType === id} onChange={() => setRequestType(id)} required />
@@ -213,23 +201,24 @@ export default function LaboratoryServiceRequest() {
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#2587ff" /><circle cx="12" cy="6.5" r="1" fill="white" /><path d="M12 10v7" stroke="white" strokeWidth="2" strokeLinecap="round" /></svg>
           <div><strong>Approval Route</strong><p>{scheduleType === "ON_SCHEDULE" ? "This request will be sent to your assigned Faculty for approval." : "Choose your assigned Faculty or the Dean as the approval recipient in Review Information."}</p></div>
         </aside>
-      </> : step === 4 ? <RequestRoomAvailability laboratory={laboratory} scheduleType={scheduleType} draft={scheduleDraft} onChange={setScheduleDraft} /> : step === 5 ? <RequestEquipmentFields items={items} notes={notes}
+      </> : step === 4 ? <RequestRoomAvailability laboratory={laboratory} scheduleType={scheduleType} draft={scheduleDraft} onChange={setScheduleDraft} /> : step === 5 ? <RequestEquipmentFields laboratory={laboratory} items={items} notes={notes}
         onAdd={addRequestedItem}
-        onChange={(rowId, patch) => setItems((previous) => previous.map((item) => item.rowId === rowId ? { ...item, ...patch, rowId } : item))}
-        onRemove={(rowId) => setItems((previous) => previous.filter((item) => item.rowId !== rowId))}
-        onNotesChange={setNotes} /> : <>
+        onChange={(rowId, patch) => { setItems((previous) => previous.map((item) => item.rowId === rowId ? { ...item, ...patch, rowId } : item)); setConfirmed(false); }}
+        onRemove={(rowId) => { setItems((previous) => previous.filter((item) => item.rowId !== rowId)); setConfirmed(false); }}
+        onNotesChange={(value) => { setNotes(value); setConfirmed(false); }} /> : <>
           {receipt && <section className="request-demo-receipt" aria-labelledby="request-receipt-title" role="status">
             <h3 ref={receiptHeading} id="request-receipt-title" tabIndex={-1}>Demo Request Submitted</h3>
             <p>Reference: <strong>{receipt.reference}</strong></p>
             <p>Selected approver: <strong>{receipt.snapshot.recipient.name}{receipt.snapshot.recipient.role === "FACULTY" ? " (Faculty)" : ""}</strong></p>
-            <p>This is a demo preview. No approval notification was sent and no room was reserved.</p>
+            <p>Saved in the temporary demo request store. No notification was sent and no room was reserved.</p><Link href="/dashboard/classrep/my-reservations">View Request Status</Link>
           </section>}
           <RequestInformationReview draft={receipt?.snapshot ?? draft} confirmed={confirmed} locked={Boolean(receipt)}
             onApproverChange={(recipient) => { setApprover(recipient); setConfirmed(false); }} onConfirmedChange={setConfirmed} onEdit={editStep} />
           {!receipt && reviewError && <p className="request-review-error" role="status">{reviewError}</p>}
         </>}
 
-      <footer className="request-laboratory-actions">
+      {submitError && <p className="request-review-error" role="alert">{submitError}</p>}
+      <footer className="request-laboratory-actions" inert={submitting}>
         {receipt ? <>
           <Link href="/dashboard/classrep" className="request-cancel-button">Back to Dashboard</Link>
           <button type="button" className="request-next-button" onClick={startNewRequest}>Create Another Request</button>
@@ -250,7 +239,7 @@ export default function LaboratoryServiceRequest() {
           <button type="button" className="request-next-button" disabled={Boolean(itemsError)} title={itemsError ?? undefined} onClick={() => { if (!itemsError) { setConfirmed(false); setStep(6); } }}>Next: Review Information <LabIcon name="arrow" /></button>
         </> : <>
           <button type="button" className="request-back-button" onClick={() => editStep(5)}><LabIcon name="arrow" />Back</button>
-          <button type="button" className="request-next-button" disabled={!canSubmit} title={reviewError ?? (!confirmed ? "Confirm that you have reviewed the request details." : undefined)} onClick={submitDemoRequest}>Submit Demo Request <LabIcon name="arrow" /></button>
+          <button type="button" className="request-next-button" disabled={!canSubmit} title={reviewError ?? (!confirmed ? "Confirm that you have reviewed the request details." : undefined)} onClick={submitDemoRequest}>{submitting ? "Submitting…" : "Submit Demo Request"} <LabIcon name="arrow" /></button>
         </>}
       </footer>
     </section>

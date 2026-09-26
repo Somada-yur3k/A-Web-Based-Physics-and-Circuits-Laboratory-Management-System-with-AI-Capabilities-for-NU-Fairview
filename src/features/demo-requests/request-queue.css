@@ -1,0 +1,48 @@
+.dean-page { max-width: 1360px; }
+.dean-page .lab-page-heading > button { flex-shrink: 0; }
+.dean-filters { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0; }
+.dean-filters label { display: grid; gap: 6px; flex: 1 1 180px; font-size: 12px; font-weight: 600; min-width: 0; }
+.dean-filters label:first-child { flex: 2 1 270px; }
+.dean-filters input, .dean-filters select, .dean-decision textarea { width: 100%; min-width: 0; border: 1px solid #cddcf3; border-radius: 7px; background: white; color: #082c83; padding: 11px; font: inherit; }
+.dean-records { display: grid; gap: 10px; }
+.dean-record { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(140px, auto) auto; align-items: center; gap: 20px; padding: 18px; border: 1px solid #e0e7f3; border-radius: 9px; }
+.dean-record > div { min-width: 0; }
+.dean-record h3 { margin: 0; font-size: 16px; }
+.dean-record p { margin: 5px 0; color: #637cc1; }
+.dean-reference { overflow-wrap: anywhere; color: #637cc1; font-size: 11px; }
+.dean-status { width: fit-content; border-radius: 20px; padding: 7px 12px; font-size: 12px; font-weight: 600; background: #fff0c7; color: #80520a; }
+.dean-status.approved { background: #d7f9e8; color: #086b49; }
+.dean-status.rejected { background: #ffe5e8; color: #a9223c; }
+.dean-note { color: #637cc1; font-size: 12px; line-height: 1.6; margin-top: 18px; }
+.dean-empty { text-align: center; padding: 35px 12px; color: #637cc1; }
+.dean-empty svg { width: 36px; height: 36px; }
+.dean-empty h3 { color: #082c83; }
+.dean-dialog { width: min(760px, calc(100% - 28px)); max-height: calc(100dvh - 36px); margin: auto; padding: 0; border: 1px solid #dce5f3; border-radius: 14px; color: #082c83; background: white; }
+.dean-dialog::backdrop { background: rgb(19 36 64 / .5); }
+.dean-dialog > header { position: sticky; top: 0; z-index: 1; background: white; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 21px 24px; border-bottom: 1px solid #e0e7f3; }
+.dean-dialog header p { margin: 0 0 5px; font-size: 11px; color: #637cc1; letter-spacing: 1px; }
+.dean-dialog h2 { font-size: 23px; margin: 0; }
+.dean-dialog h3 { font-size: 16px; margin: 20px 0 12px; }
+.dean-dialog .lab-icon-button { flex-shrink: 0; }
+.dean-dialog-body { padding: 0 24px 24px; container: service-request / inline-size; }
+.dean-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; border-bottom: 1px solid #e0e7f3; padding: 22px 0; }
+.dean-details dt { color: #637cc1; font-size: 12px; margin-bottom: 5px; }
+.dean-details dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; line-height: 1.5; }
+.dean-students { list-style: none; padding: 0; display: grid; gap: 8px; }
+.dean-students li { display: flex; flex-wrap: wrap; gap: 6px 15px; justify-content: space-between; padding: 12px; border-radius: 6px; background: #f4f8fd; font-size: 13px; }
+.dean-students span { color: #637cc1; }
+.dean-notes { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; }
+.dean-decision { margin-top: 24px; padding-top: 18px; border-top: 1px solid #e0e7f3; }
+.dean-decision label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 9px; }
+.dean-decision label span { font-weight: 400; color: #637cc1; }
+.dean-decision textarea { resize: vertical; font-size: 14px; }
+.dean-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; margin-top: 16px; }
+.dean-actions button { padding: 11px 18px; border-radius: 7px; font: inherit; font-weight: 600; cursor: pointer; }
+.dean-approve { color: white; background: #073793; border: 1px solid #073793; }
+.dean-reject { color: #b32641; background: #fff; border: 1px solid #efb5bf; }
+.dean-confirmation { padding: 12px; background: #eff5ff; border-radius: 8px; line-height: 1.5; }
+.dean-error { color: #ac243c; background: #fff0f2; padding: 12px; border-radius: 6px; }
+.dean-message { color: #086b49; background: #e5faf0; padding: 12px; border-radius: 6px; }
+.dean-page button:disabled, .dean-dialog button:disabled { opacity: .6; cursor: wait; }
+@container lab-content (max-width: 850px) { .dean-record { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; } .dean-record button { justify-self: end; } }
+@media (max-width: 600px) { .dean-page .lab-page-heading { flex-direction: column; gap: 12px; } .dean-page .lab-panel { padding: 16px; } .dean-record { grid-template-columns: minmax(0, 1fr); padding: 14px; } .dean-record button { justify-self: stretch; min-height: 40px; } .dean-dialog > header { padding: 17px; } .dean-dialog h2 { font-size: 19px; } .dean-dialog-body { padding: 0 17px 17px; } .dean-details { grid-template-columns: minmax(0, 1fr); } .dean-actions button { flex: 1 1 150px; } }

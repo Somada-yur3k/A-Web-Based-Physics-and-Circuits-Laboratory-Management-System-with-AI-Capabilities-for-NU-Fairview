@@ -1,0 +1,189 @@
+[
+  {
+    "width": 320,
+    "height": 568,
+    "card": {
+      "left": 16,
+      "top": 20,
+      "right": 304,
+      "width": 288,
+      "height": 535
+    },
+    "pageWidth": 320,
+    "inputFont": "16px",
+    "inputHeight": 46,
+    "toggle": 44,
+    "buttonHeight": 46,
+    "spills": []
+  },
+  {
+    "width": 360,
+    "height": 640,
+    "card": {
+      "left": 16,
+      "top": 52.5,
+      "right": 344,
+      "width": 328,
+      "height": 535
+    },
+    "pageWidth": 360,
+    "inputFont": "16px",
+    "inputHeight": 46,
+    "toggle": 44,
+    "buttonHeight": 46,
+    "spills": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "card": {
+      "left": 20,
+      "top": 153.15625,
+      "right": 370,
+      "width": 350,
+      "height": 537.6875
+    },
+    "pageWidth": 390,
+    "inputFont": "16px",
+    "inputHeight": 46,
+    "toggle": 44,
+    "buttonHeight": 46,
+    "spills": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "card": {
+      "left": 35,
+      "top": 197.15625,
+      "right": 395,
+      "width": 360,
+      "height": 537.6875
+    },
+    "pageWidth": 430,
+    "inputFont": "16px",
+    "inputHeight": 46,
+    "toggle": 44,
+    "buttonHeight": 46,
+    "spills": []
+  },
+  {
+    "width": 600,
+    "height": 800,
+    "card": {
+      "left": 120,
+      "top": 131.15625,
+      "right": 480,
+      "width": 360,
+      "height": 537.6875
+    },
+    "pageWidth": 600,
+    "inputFont": "16px",
+    "inputHeight": 46,
+    "toggle": 44,
+    "buttonHeight": 46,
+    "spills": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "card": {
+      "left": 164,
+      "top": 223.953125,
+      "right": 604,
+      "width": 440,
+      "height": 576.09375
+    },
+    "pageWidth": 768,
+    "inputFont": "16px",
+    "inputHeight": 48,
+    "toggle": 44,
+    "buttonHeight": 48,
+    "spills": []
+  },
+  {
+    "width": 1366,
+    "height": 768,
+    "card": {
+      "left": 463,
+      "top": 95.953125,
+      "right": 903,
+      "width": 440,
+      "height": 576.09375
+    },
+    "pageWidth": 1366,
+    "inputFont": "16px",
+    "inputHeight": 48,
+    "toggle": 44,
+    "buttonHeight": 48,
+    "spills": []
+  },
+  {
+    "width": 1920,
+    "height": 1080,
+    "card": {
+      "left": 740,
+      "top": 251.953125,
+      "right": 1180,
+      "width": 440,
+      "height": 576.09375
+    },
+    "pageWidth": 1920,
+    "inputFont": "16px",
+    "inputHeight": 48,
+    "toggle": 44,
+    "buttonHeight": 48,
+    "spills": []
+  },
+  {
+    "width": 2560,
+    "height": 1440,
+    "card": {
+      "left": 1060,
+      "top": 431.953125,
+      "right": 1500,
+      "width": 440,
+      "height": 576.09375
+    },
+    "pageWidth": 2560,
+    "inputFont": "16px",
+    "inputHeight": 48,
+    "toggle": 44,
+    "buttonHeight": 48,
+    "spills": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "card": {
+      "left": 202,
+      "top": 16,
+      "right": 642,
+      "width": 440,
+      "height": 576.09375
+    },
+    "pageWidth": 844,
+    "inputFont": "16px",
+    "inputHeight": 48,
+    "toggle": 44,
+    "buttonHeight": 48,
+    "spills": []
+  },
+  {
+    "width": 390,
+    "height": 360,
+    "card": {
+      "left": 20,
+      "top": 16,
+      "right": 370,
+      "width": 350,
+      "height": 537.6875
+    },
+    "pageWidth": 390,
+    "inputFont": "16px",
+    "inputHeight": 46,
+    "toggle": 44,
+    "buttonHeight": 46,
+    "spills": []
+  }
+]

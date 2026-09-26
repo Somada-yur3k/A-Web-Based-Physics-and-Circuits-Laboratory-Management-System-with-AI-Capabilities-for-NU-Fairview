@@ -27,6 +27,7 @@ function loadSource(file) {
 }
 
 const { createScheduleDraft } = loadSource("src/features/lab-dashboard/room-availability.ts");
+const { addCatalogItem, itemsForLaboratory } = loadSource("src/features/lab-dashboard/equipment-catalog.ts");
 const { approvalRecipient, requestedItemsError, serviceRequestError, createDemoRequestSnapshot } = loadSource("src/features/lab-dashboard/request-review.ts");
 const draft = {
   laboratory: "circuits", requestType: "GROUP", students: [{ name: " Demo Student ", studentId: " 2024-1031816 " }],
@@ -58,6 +59,22 @@ for (const quantity of [0, -1, 1.5, 1000, NaN, Infinity]) assert.ok(requestedIte
 assert.ok(requestedItemsError([{ ...item, name: " " }], ""));
 assert.ok(requestedItemsError([{ ...item, kind: "unknown" }], ""));
 assert.ok(requestedItemsError([item], "x".repeat(1001)));
+const catalogItems = addCatalogItem([], "breadboard", "circuits", 1);
+assert.equal(requestedItemsError(catalogItems, "", "circuits"), null);
+assert.equal(addCatalogItem(catalogItems, "breadboard", "circuits", 2).length, 1);
+assert.equal(addCatalogItem(catalogItems, "breadboard", "circuits", 2)[0].quantity, 2);
+assert.equal(addCatalogItem([], "oscilloscope", "circuits", 1).length, 0, "Unavailable items cannot be added.");
+assert.equal(addCatalogItem([], "breadboard", "physics", 1).length, 0, "Cannot add another lab's catalogue item.");
+assert.equal(addCatalogItem([{ ...catalogItems[0], quantity: 12 }], "breadboard", "circuits", 2)[0].quantity, 12);
+assert.match(requestedItemsError([{ ...catalogItems[0], quantity: 13 }], "", "circuits"), /up to 12/);
+assert.ok(requestedItemsError(catalogItems, "", "physics"));
+assert.ok(requestedItemsError([...catalogItems, { ...catalogItems[0], rowId: 2 }], "", "circuits"));
+assert.ok(requestedItemsError([{ ...catalogItems[0], name: "Different name" }], "", "circuits"));
+assert.ok(requestedItemsError([{ ...catalogItems[0], catalogId: "unknown" }], "", "circuits"));
+assert.equal(itemsForLaboratory(catalogItems, "physics").length, 0);
+assert.equal(itemsForLaboratory([...catalogItems, item], "physics").length, 1, "Custom items survive a laboratory change.");
+assert.equal(itemsForLaboratory(addCatalogItem(catalogItems, "multimeter", "circuits", 2), "physics")[0].catalogId, "multimeter", "Shared equipment survives a lab change.");
+assert.throws(() => createDemoRequestSnapshot({ ...draft, items: [{ ...catalogItems[0], quantity: 13 }] }), /up to 12/);
 assert.throws(() => createDemoRequestSnapshot(out), /Choose Faculty or Dean/);
 const snapshot = createDemoRequestSnapshot({ ...draft, items: [item], notes: " Setup " });
 assert.deepEqual(snapshot.students, [{ name: "Demo Student", studentId: "2024-1031816" }]);
@@ -84,4 +101,6 @@ assert.ok(!/<input[^>]*name="approval-recipient"[^>]*checked/.test(outHtml), "Ou
 assert.match(render({ ...out, approver: "DEAN" }), /For approval by: <strong>Dean/);
 assert.match(render(draft, true), /type="checkbox" disabled/);
 assert.match(render({ ...draft, students: [{ name: "<script>test</script>", studentId: "2024-1031816" }] }), /&lt;script&gt;/, "Names are rendered as text.");
+assert.match(render({ ...draft, items: catalogItems }), /Breadboard/);
+assert.match(render({ ...draft, items: catalogItems }), /1 pcs/);
 console.log("Request review checks passed: assigned Faculty, explicit Out-of-Schedule recipients, submission validation, immutable snapshots, and review rendering.");

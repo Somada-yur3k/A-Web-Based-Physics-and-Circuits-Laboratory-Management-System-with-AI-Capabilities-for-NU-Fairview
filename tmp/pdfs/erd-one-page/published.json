@@ -1,0 +1,156 @@
+{
+  "at": "2026-09-26T20:05:32.445Z",
+  "target": "C:\\Users\\Eurika\\Desktop\\PBL1\\Documentation",
+  "files": [
+    {
+      "file": "Docs.html",
+      "original": "b67a4ccc6ab355b018de075a002a51ac4523c602cd84b105cf8ac851ade3102b",
+      "staged": "166dce16add2fdf351f116420031169d92c3c51042434e04e9510946887cbded"
+    },
+    {
+      "file": "README.md",
+      "original": "6b91c118e9a1fe6c8fb633c3e120fb31438cd8c8692664f52460ef5dec890c1a",
+      "staged": "36df5ccc80e9cb3ce069bc6f74843848f42b11dfdd5cb84a75b792729789b637"
+    },
+    {
+      "file": "ERD.md",
+      "original": "c31bd391e0f06ef378a6eb8a0a30dd50d8d35e8fb55db811175d2a01bada7b00",
+      "staged": "9a8583d14918522a51fbdef17f0991245793272852e1559fa248cd06c0b38394"
+    },
+    {
+      "file": "ERD-RELATIONSHIPS.md",
+      "original": "53071dbc116193023c45bee8dd1b75a5f738fed127b263754b6ff7134732d39c",
+      "staged": "f375735e415d4a7b8149581d1fc83c4e6dee7d82eb7edfc819e2cd481c448921"
+    },
+    {
+      "file": "ERD.html",
+      "original": "3b3d42b78d3d51add8e5e982b12c3a554e6ab667dadfea644431729a5eee644e",
+      "staged": "1a8e848e0fc54c5ba43dc6b074e533ed704ab66e5e6fe46076075cb67b6ec029"
+    },
+    {
+      "file": "ERD-A4.html",
+      "original": "8acfa9505a642fe5d3b684d53973a09ff7b3a27a2ffb197e899faee89ec4bcb0",
+      "staged": "1a8e848e0fc54c5ba43dc6b074e533ed704ab66e5e6fe46076075cb67b6ec029"
+    },
+    {
+      "file": "ERD-PRINT.html",
+      "original": "4d0cc674e36e260844ac2c9edd27b070d17232cdf383239a8ee7b28c51b83bec",
+      "staged": "1a8e848e0fc54c5ba43dc6b074e533ed704ab66e5e6fe46076075cb67b6ec029"
+    },
+    {
+      "file": "assets/erd/a4-render.js",
+      "original": "1e9846717081b5b658c1734c12746fc3d83a8b3f070f215302b99a4fe6970203",
+      "staged": "54ab9a7ce9446111be834f1cfe115ad20ce357ee344261ba311ee5b0eb065e8a"
+    },
+    {
+      "file": "assets/erd/render.js",
+      "original": "1e9846717081b5b658c1734c12746fc3d83a8b3f070f215302b99a4fe6970203",
+      "staged": "54ab9a7ce9446111be834f1cfe115ad20ce357ee344261ba311ee5b0eb065e8a"
+    },
+    {
+      "file": "assets/erd/print-render.js",
+      "original": "1e9846717081b5b658c1734c12746fc3d83a8b3f070f215302b99a4fe6970203",
+      "staged": "54ab9a7ce9446111be834f1cfe115ad20ce357ee344261ba311ee5b0eb065e8a"
+    },
+    {
+      "file": "assets/erd/print-model.js",
+      "original": "230f0bfa0621c83b94775ad760c7793191d6567166572ed8d4f4a479a7a5e5cf",
+      "staged": "0f9e7fea0162f2d992c78ebeadbdf62c458eedd9c5ac44104800837dcdde5fd7"
+    },
+    {
+      "file": "assets/erd/artwork.js",
+      "original": "1abbbafb01a6555f59bff9cabacfe63c370c4894d9a620bca85aa70b7a14b680",
+      "staged": "ccfe35e340617f76f689a848f557cc5c4168da90667a4ae2bf916dab2b719814"
+    },
+    {
+      "file": "assets/erd/style.css",
+      "original": "115ba66209f5ca679cfdda61ebdf5b7325d9bfd6702acf2d2d9b854b15e774e0",
+      "staged": "016e4e51bc4b60d7fe6e8c89ef4617ada70723bb0bbc1c74518669e711261e57"
+    },
+    {
+      "file": "assets/erd/a4.css",
+      "original": "019d9bfcbe17db942b51183dd5113511735920e053807f02e87fff23028c1227",
+      "staged": "c29273a8e8e4b9d9d642eb90d2e41ae2b9969679773bfe5f8bf64a364c95ff70"
+    },
+    {
+      "file": "assets/erd/print.css",
+      "original": "019d9bfcbe17db942b51183dd5113511735920e053807f02e87fff23028c1227",
+      "staged": "c29273a8e8e4b9d9d642eb90d2e41ae2b9969679773bfe5f8bf64a364c95ff70"
+    },
+    {
+      "file": "assets/erd/erd-a4-complete.svg",
+      "original": "92a38c424eec7542e4bc6816b59db041ce7a50a0815f2fa40ebd8127d2052575",
+      "staged": "64295de0db1103f3497c19695d79776f48ae3edfa7e6ee107cd290e24debab31"
+    },
+    {
+      "file": "assets/erd/erd-a4-complete.png",
+      "original": "0a7f0feaa9b19e0bb3070bba2d766e9d32ac1afd7ba53c71fc740c5109c3995b",
+      "staged": "c60b58950acec69228f9d59b284d15b86721d0660c12fd7d501ff64180e86d9c"
+    },
+    {
+      "file": "assets/erd/erd-complete.svg",
+      "original": "92a38c424eec7542e4bc6816b59db041ce7a50a0815f2fa40ebd8127d2052575",
+      "staged": "64295de0db1103f3497c19695d79776f48ae3edfa7e6ee107cd290e24debab31"
+    },
+    {
+      "file": "assets/erd/erd-complete.png",
+      "original": "0a7f0feaa9b19e0bb3070bba2d766e9d32ac1afd7ba53c71fc740c5109c3995b",
+      "staged": "c60b58950acec69228f9d59b284d15b86721d0660c12fd7d501ff64180e86d9c"
+    },
+    {
+      "file": "assets/erd/erd-a4.pdf",
+      "original": "8f6f81bbe2fe72f612e2ff5844cce39a7348b43cfefb6b0c629cbf92e6414511",
+      "staged": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a"
+    },
+    {
+      "file": "assets/erd/erd.pdf",
+      "original": "8f6f81bbe2fe72f612e2ff5844cce39a7348b43cfefb6b0c629cbf92e6414511",
+      "staged": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a"
+    },
+    {
+      "file": "assets/erd/erd-a4-readable.pdf",
+      "original": "8f6f81bbe2fe72f612e2ff5844cce39a7348b43cfefb6b0c629cbf92e6414511",
+      "staged": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a"
+    },
+    {
+      "file": "output/pdf/erd-a4-readable.pdf",
+      "original": "8f6f81bbe2fe72f612e2ff5844cce39a7348b43cfefb6b0c629cbf92e6414511",
+      "staged": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a"
+    },
+    {
+      "file": "assets/erd/DESIGN.md",
+      "original": "c6c2e9fb16cc1f30274ebd4998556e0bb5c15c0f3cd001f1357b6043f2d80997",
+      "staged": "1ac4906d2a70b36e6108b79d102a2176e68e072fd0f0be7df0ce023fb5ce74de"
+    },
+    {
+      "file": "assets/erd/geometry.json",
+      "original": null,
+      "staged": "8fc9cb52d2180cd6559dbefb5cf6227264221ab3847f25f0fd49baca91803761"
+    },
+    {
+      "file": "integrations/erd/build-connected.cjs",
+      "original": "b320359e2eb863f6396a8d9357a266627f49a6e56ef8268208186df0f5a03068",
+      "staged": "ed75cd27cb75987fa39b088dba0dfb467e8d94969d131acd14e33d6a4b79011d"
+    },
+    {
+      "file": "integrations/erd/check.cjs",
+      "original": "b6a0d2fbdfd4f76f93045df382694023270a1e15c8f686c19f11134c70e74138",
+      "staged": "4448837564b3f613859b9de95c8eda2a7afb856fdf067633820d1ae07b433bc4"
+    },
+    {
+      "file": "integrations/erd/check-a4.cjs",
+      "original": "63f273a4cb9ce549b3a6da8c52e4b4fe8934da761c1a36f66593676a14762ff7",
+      "staged": "80501fa99fc25f368eaa0acd2a1ec0d8a37797c23553f623c3884e5c9ae777ae"
+    },
+    {
+      "file": "integrations/erd/check-print.cjs",
+      "original": "63f273a4cb9ce549b3a6da8c52e4b4fe8934da761c1a36f66593676a14762ff7",
+      "staged": "80501fa99fc25f368eaa0acd2a1ec0d8a37797c23553f623c3884e5c9ae777ae"
+    },
+    {
+      "file": "integrations/erd/SCREEN-ALIGNMENT.md",
+      "original": "c6c2e9fb16cc1f30274ebd4998556e0bb5c15c0f3cd001f1357b6043f2d80997",
+      "staged": "1ac4906d2a70b36e6108b79d102a2176e68e072fd0f0be7df0ce023fb5ce74de"
+    }
+  ]
+}

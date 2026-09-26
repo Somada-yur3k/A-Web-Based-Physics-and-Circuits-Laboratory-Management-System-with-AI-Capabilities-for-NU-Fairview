@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import LabIcon, { type LabIconName } from "@/components/dashboard/lab-icon";
-import { dashboardHref, type DashboardRole } from "./config";
+import { dashboardHref, type DashboardRole as AllDashboardRoles } from "./config";
+type DashboardRole = Exclude<AllDashboardRoles, "dean">;
 import { dashboardSnapshots, formatDashboardDate, type DashboardRequest } from "./demo-data";
 
 function RequestDetails({ request, role, onClose }: { request: DashboardRequest; role: DashboardRole; onClose: () => void }) {
@@ -23,12 +24,11 @@ export default function DashboardHome({ role }: { role: DashboardRole }) {
   const createLabel = isFaculty ? "Create Request" : "Make Reservation";
   const createPath = "service-request";
   const recentPath = isFaculty ? "reservation-status" : "my-reservations";
-  const quickActions: { label: string; slug: string; icon: LabIconName; tone: string }[] = [
+  const quickActions: { label: string; slug: string; icon: LabIconName; tone: string }[] = isFaculty ? [
     { label: createLabel, slug: createPath, icon: "calendar-plus", tone: "blue" },
     { label: "View Schedule", slug: "schedule", icon: "inventory", tone: "amber" },
     { label: isFaculty ? "Reservation Status" : "My Reservation", slug: recentPath, icon: "report", tone: "blue" },
-  ];
-  if (!isFaculty) quickActions.push({ label: "Clearance", slug: "clearance-status", icon: "shield", tone: "green" });
+  ] : [{ label: "Laboratory Service Request", slug: createPath, icon: "request", tone: "blue" }];
 
   return <main className="lab-dashboard-content">
     <div className="lab-page-heading"><div><h1>{snapshot.title}</h1><p>{snapshot.description}</p></div><time dateTime={snapshot.asOf}>{formatDashboardDate(snapshot.asOf, true)}</time></div>
@@ -39,7 +39,7 @@ export default function DashboardHome({ role }: { role: DashboardRole }) {
     </div>
     <div className="lab-secondary-grid">
       <section className="lab-panel lab-recent-panel" aria-labelledby="lab-recent-title"><header className="lab-panel-heading"><h2 id="lab-recent-title"><LabIcon name="report" /><span>{isFaculty ? "Recent Laboratory Requests" : "Recent Circuits Lab Reservations"}</span></h2><Link href={dashboardHref(role, recentPath)}>View All</Link></header><div className="lab-table-scroll" tabIndex={0} role="region" aria-label={isFaculty ? "Recent requests table" : "Recent reservations table"}><table className="lab-table lab-recent-table"><thead><tr><th scope="col">Ref No.</th><th scope="col">Date</th><th scope="col">{isFaculty ? "Section" : "Laboratory"}</th><th scope="col">{isFaculty ? "Schedule Type" : "Reservation Type"}</th><th scope="col">Status</th><th scope="col" className="lab-action-column">Action</th></tr></thead><tbody>{snapshot.requests.map((request) => <tr key={request.reference}><td>{request.reference}</td><td><time dateTime={request.date}>{formatDashboardDate(request.date)}</time></td><td>{isFaculty ? request.section : request.laboratory}</td><td>{request.type}</td><td><span className={`lab-status ${request.status.toLowerCase().replace(/\s/g, "-")}`}>{request.status}</span></td><td className="lab-action-column"><button className="lab-view-button" aria-label={`View ${request.reference}`} onClick={() => setSelectedRequest(request)}>View</button></td></tr>)}</tbody></table></div></section>
-      <section className="lab-panel lab-quick-panel" aria-labelledby="lab-quick-title"><header className="lab-quick-heading"><LabIcon name="bolt" /><div><h2 id="lab-quick-title">Quick Actions</h2><p>Common tasks for Circuits laboratory {isFaculty ? "faculty" : "representatives"}.</p></div></header><div className={`lab-quick-grid${isFaculty ? " faculty-quick-grid" : ""}`}>{quickActions.map(({ label, slug, icon, tone }) => <Link key={slug} href={dashboardHref(role, slug)} className="lab-quick-action"><span className={`lab-quick-icon ${tone}`}><LabIcon name={icon} /></span><LabIcon name="chevron" className="lab-quick-chevron" /><strong>{label}</strong></Link>)}</div></section>
+      <section className="lab-panel lab-quick-panel" aria-labelledby="lab-quick-title"><header className="lab-quick-heading"><LabIcon name="bolt" /><div><h2 id="lab-quick-title">Quick Actions</h2><p>{isFaculty ? "Common tasks for Circuits laboratory faculty." : "Open the Laboratory Service Request form."}</p></div></header><div className={`lab-quick-grid${isFaculty ? " faculty-quick-grid" : " classrep-quick-grid"}`}>{quickActions.map(({ label, slug, icon, tone }) => <Link key={slug} href={dashboardHref(role, slug)} className="lab-quick-action"><span className={`lab-quick-icon ${tone}`}><LabIcon name={icon} /></span><LabIcon name="chevron" className="lab-quick-chevron" /><strong>{label}</strong></Link>)}</div></section>
     </div>
     <p className="lab-preview-note">Dashboard preview · Sample data</p>
     {selectedRequest && <RequestDetails request={selectedRequest} role={role} onClose={() => setSelectedRequest(null)} />}

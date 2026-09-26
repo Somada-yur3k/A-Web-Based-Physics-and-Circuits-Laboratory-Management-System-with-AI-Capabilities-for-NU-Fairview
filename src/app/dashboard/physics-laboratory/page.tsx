@@ -1,5 +1,7 @@
-import DashboardPlaceholder from "@/components/dashboard/dashboard-placeholder";
+import StaffPage from "@/features/staff/staff-page";
+import { requireDemoRole } from "@/features/demo-auth/session";
 
-export default function PhysicsLaboratoryDashboard() {
-  return <DashboardPlaceholder role="Physics Laboratory" />;
+export default async function PhysicsLaboratoryDashboard() {
+  await requireDemoRole("physics-staff");
+  return <StaffPage laboratory="physics" />;
 }

@@ -34,7 +34,7 @@
 .availability-week-button.is-previous svg { transform: rotate(180deg); }
 .availability-week-button:hover, .availability-selected-week:hover { background: #edf4ff; }
 .availability-instructions { margin: 0 0 12px; color: #6c80b4; font-size: 12px; line-height: 1.5; }
-.availability-table-scroll { width: 100%; max-height: 650px; overflow: auto; border: 1px solid #dbe5f4; border-radius: 7px; }
+.availability-table-scroll { width: 100%; min-width: 0; max-height: 650px; overflow: auto; border: 1px solid #dbe5f4; border-radius: 7px; }
 .availability-table-scroll:focus-visible { outline: 3px solid #d6ab28; outline-offset: 3px; }
 .availability-calendar { --availability-slot-height: 28px; width: 100%; min-width: 850px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 11px; }
 .availability-calendar thead th { position: sticky; top: 0; z-index: 3; height: 48px; padding: 7px; border-right: 1px solid #45689d; background: #10376f; color: white; text-align: center; font-size: 11px; font-weight: 500; }
@@ -73,4 +73,15 @@
   .availability-table-scroll { max-height: 540px; }
   .availability-calendar { --availability-slot-height: 44px; }
   .availability-calendar tbody th { font-size: 11px; }
+}
+
+@container service-request (max-width: 760px) {
+  .request-schedule-columns { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .request-schedule-header { align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+}
+@container service-request (max-width: 600px) {
+  .request-schedule-fields, .request-availability-panel { padding: 16px 12px; }
+  .request-schedule-field input, .request-schedule-field select { font-size: 16px; max-width: 100%; }
+  .request-schedule-header h3, .request-availability-heading h3 { font-size: 18px; }
+  .availability-selection-status p, .availability-block-details > div { min-width: 0; overflow-wrap: anywhere; }
 }

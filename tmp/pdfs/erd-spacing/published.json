@@ -1,0 +1,75 @@
+{
+  "at": "2026-09-26T20:26:32.228Z",
+  "files": [
+    {
+      "file": "assets/erd/a4-render.js",
+      "before": "54ab9a7ce9446111be834f1cfe115ad20ce357ee344261ba311ee5b0eb065e8a",
+      "after": "05d401191ebfcae4d6afe7b20e0611832cb34f7c78529ba34f1a54c297aa271d"
+    },
+    {
+      "file": "assets/erd/render.js",
+      "before": "54ab9a7ce9446111be834f1cfe115ad20ce357ee344261ba311ee5b0eb065e8a",
+      "after": "05d401191ebfcae4d6afe7b20e0611832cb34f7c78529ba34f1a54c297aa271d"
+    },
+    {
+      "file": "assets/erd/print-render.js",
+      "before": "54ab9a7ce9446111be834f1cfe115ad20ce357ee344261ba311ee5b0eb065e8a",
+      "after": "05d401191ebfcae4d6afe7b20e0611832cb34f7c78529ba34f1a54c297aa271d"
+    },
+    {
+      "file": "assets/erd/artwork.js",
+      "before": "ccfe35e340617f76f689a848f557cc5c4168da90667a4ae2bf916dab2b719814",
+      "after": "10326954229bf120364bc2be90b805ee493ee944d3ecab59f88fe46ab7024d52"
+    },
+    {
+      "file": "assets/erd/geometry.json",
+      "before": "8fc9cb52d2180cd6559dbefb5cf6227264221ab3847f25f0fd49baca91803761",
+      "after": "c077ebbe3dfd35640204ddade888d5b4e9922dcdb8d3e343ec3c46ec2a2fbea1"
+    },
+    {
+      "file": "assets/erd/erd-a4-complete.svg",
+      "before": "64295de0db1103f3497c19695d79776f48ae3edfa7e6ee107cd290e24debab31",
+      "after": "dce7462b701a0c9994b551cb1383b4709de9030a95a7b72701aaf6e185731d70"
+    },
+    {
+      "file": "assets/erd/erd-complete.svg",
+      "before": "64295de0db1103f3497c19695d79776f48ae3edfa7e6ee107cd290e24debab31",
+      "after": "dce7462b701a0c9994b551cb1383b4709de9030a95a7b72701aaf6e185731d70"
+    },
+    {
+      "file": "assets/erd/erd-a4-complete.png",
+      "before": "c60b58950acec69228f9d59b284d15b86721d0660c12fd7d501ff64180e86d9c",
+      "after": "e4787ed522997b8d796ab4efad929c49bd6ee3b117f2030c462eccf493d0a430"
+    },
+    {
+      "file": "assets/erd/erd-complete.png",
+      "before": "c60b58950acec69228f9d59b284d15b86721d0660c12fd7d501ff64180e86d9c",
+      "after": "e4787ed522997b8d796ab4efad929c49bd6ee3b117f2030c462eccf493d0a430"
+    },
+    {
+      "file": "assets/erd/erd-a4.pdf",
+      "before": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a",
+      "after": "2a1bb32a83c86fecc9d7a1968d7f43ac082faeb24eea82e7dfc4e42ad2887538"
+    },
+    {
+      "file": "assets/erd/erd.pdf",
+      "before": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a",
+      "after": "2a1bb32a83c86fecc9d7a1968d7f43ac082faeb24eea82e7dfc4e42ad2887538"
+    },
+    {
+      "file": "assets/erd/erd-a4-readable.pdf",
+      "before": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a",
+      "after": "2a1bb32a83c86fecc9d7a1968d7f43ac082faeb24eea82e7dfc4e42ad2887538"
+    },
+    {
+      "file": "output/pdf/erd-a4-readable.pdf",
+      "before": "21eaa4a0320dd146d04414ed9d4076dfafb9eaead0ddbfa901a90e7813dc7c7a",
+      "after": "2a1bb32a83c86fecc9d7a1968d7f43ac082faeb24eea82e7dfc4e42ad2887538"
+    },
+    {
+      "file": "integrations/erd/build-connected.cjs",
+      "before": "ed75cd27cb75987fa39b088dba0dfb467e8d94969d131acd14e33d6a4b79011d",
+      "after": "5d03e967032f0043d4eb7a6c69b58c8e59e8a400dc303f1e386ddbaf9e5c74be"
+    }
+  ]
+}
