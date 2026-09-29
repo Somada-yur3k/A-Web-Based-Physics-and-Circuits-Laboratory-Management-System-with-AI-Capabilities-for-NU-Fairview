@@ -13,7 +13,13 @@ declare global { var staffDemoInventory: Map<string, InventoryItem> | undefined;
 const inventory = globalThis.staffDemoInventory ??= new Map<string, InventoryItem>();
 if (!inventory.size) for (const item of equipmentCatalog) for (const laboratory of item.laboratories) {
   const id = `${laboratory}-${item.id}`;
-  inventory.set(id, { id, laboratory, catalogId: item.id, image: null, name: item.name, category: laboratory === "physics" && item.category === "Circuits Equipment" ? "Laboratory Equipment" : item.category, kind: item.kind, stock: item.stock, unit: item.unit, condition: "Usable", updatedAt: "2026-03-07T08:00:00Z" });
+  inventory.set(id, { id, laboratory, catalogId: item.id, image: null, name: item.name, category: item.category, kind: item.kind, stock: item.stock, unit: item.unit, condition: "Usable", updatedAt: "2026-03-07T08:00:00Z" });
+}
+// Reconcile legacy demo assignments retained in memory during development reloads.
+// Custom inventory rows are independent of the sample catalogue.
+for (const [id, item] of inventory) {
+  const source = equipmentCatalog.find((entry) => entry.id === item.catalogId);
+  if (source && !source.laboratories.includes(item.laboratory)) inventory.delete(id);
 }
 export function readInventory(laboratory?: StaffLaboratory): InventoryItem[] {
   return [...inventory.values()].filter((item) => !laboratory || item.laboratory === laboratory).map((item) => structuredClone(item));

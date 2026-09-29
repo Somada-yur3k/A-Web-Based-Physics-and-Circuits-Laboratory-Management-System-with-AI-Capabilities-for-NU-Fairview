@@ -10,6 +10,7 @@ import RequestEquipmentFields from "./request-equipment-fields";
 import RequestInformationReview from "./request-information-review";
 import { addCatalogItem, itemsForLaboratory } from "./equipment-catalog";
 import useRequestProgress from "./use-request-progress";
+import useOfficialSchedule from "./use-official-schedule";
 import { createScheduleDraft, scheduleDraftError, type ScheduleDraft } from "./room-availability";
 import { requestedItemsError, serviceRequestError, type ApprovalRecipient, type DemoRequestSnapshot, type RequestedItem, type ServiceRequestDraft } from "./request-review";
 import { areParticipantDetailsValid, type GroupStudentRow, type RequestType, type StudentDetails } from "./request-participants";
@@ -60,6 +61,7 @@ const scheduleTypes = [
 ] as const;
 
 export default function LaboratoryServiceRequest() {
+  const scheduleData = useOfficialSchedule();
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [laboratory, setLaboratory] = useState<"physics" | "circuits">("circuits");
   const [requestType, setRequestType] = useState<RequestType | null>(null);
@@ -84,10 +86,10 @@ export default function LaboratoryServiceRequest() {
   useRequestProgress(activeStep, step);
   const activeStudents = requestType === "GROUP" ? groupStudents : requestType === "STUDENT_ONLY" ? [individualStudent] : [];
   const canContinueToSchedule = areParticipantDetailsValid(requestType, activeStudents);
-  const scheduleError = scheduleDraftError(laboratory, scheduleType, scheduleDraft);
+  const scheduleError = scheduleData.loading ? "Loading official schedule…" : scheduleData.error || scheduleDraftError(laboratory, scheduleType, scheduleDraft, scheduleData.blocksFor(scheduleDraft), scheduleData.classes);
   const itemsError = requestedItemsError(items, notes, laboratory);
   const draft: ServiceRequestDraft = { laboratory, requestType, students: activeStudents, scheduleType, schedule: scheduleDraft, items, notes, approver };
-  const reviewError = serviceRequestError(draft);
+  const reviewError = scheduleData.loading ? "Loading official schedule…" : scheduleData.error || serviceRequestError(draft, scheduleData.blocksFor(scheduleDraft), scheduleData.classes);
   const canSubmit = confirmed && !reviewError && !receipt;
   const stepTitles = ["Choose Laboratory", "Select Request Type", "Select Schedule Type", "Schedule & Room Availability", "Equipment & Materials", "Review Information"];
   const stepDescriptions = ["Select the laboratory where you want to make a service request.", "Choose the type of reservation you want to make.", "Choose when you want to schedule your laboratory session.", "Check the room's regular schedules and existing requests, then choose your session block.", "Add any equipment, materials, or special setup needed for your laboratory session.", "Review your request details and approval recipient before submitting."];
@@ -99,7 +101,7 @@ export default function LaboratoryServiceRequest() {
   }
 
   async function submitDemoRequest() {
-    if (submissionLock.current || !confirmed || receipt || serviceRequestError(draft)) return;
+    if (submissionLock.current || !confirmed || receipt || reviewError) return;
     submissionLock.current = true; setSubmitting(true); setSubmitError("");
     try {
       const response = await fetch("/api/demo/requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) });
@@ -121,7 +123,7 @@ export default function LaboratoryServiceRequest() {
     setIndividualStudent({ name: "", studentId: "" });
     nextStudentRowId.current = 2;
     setScheduleType("ON_SCHEDULE");
-    setScheduleDraft(createScheduleDraft("circuits", "ON_SCHEDULE"));
+    setScheduleDraft(createScheduleDraft("circuits", "ON_SCHEDULE", undefined, undefined, scheduleData.classes));
     setItems([]);
     nextItemRowId.current = 1;
     setNotes("");
@@ -150,6 +152,10 @@ export default function LaboratoryServiceRequest() {
     if (receipt) receiptHeading.current?.focus();
   }, [receipt]);
 
+  useEffect(() => {
+    if (!scheduleData.loading && scheduleType === "ON_SCHEDULE" && !receipt) setScheduleDraft((current) => createScheduleDraft(laboratory, scheduleType, current.date, current.classId, scheduleData.classes));
+  }, [scheduleData.official]);
+
   return <main className="classrep-request-page" aria-labelledby="request-page-title">
     <nav className="request-progress" aria-label="Laboratory service request progress" tabIndex={0}>
       <ol className="request-steps">
@@ -171,7 +177,7 @@ export default function LaboratoryServiceRequest() {
         <p>{stepDescriptions[step - 1]}</p>
       </header>
 
-      {step === 1 ? <RequestLaboratoryChoices laboratory={laboratory} onChange={(id) => { if (id !== laboratory) { setLaboratory(id); setScheduleDraft(createScheduleDraft(id, scheduleType, scheduleDraft.date)); setItems((previous) => itemsForLaboratory(previous, id)); setApprover(null); setConfirmed(false); } }} /> : step === 2 ? <><fieldset className="request-type-options">
+      {step === 1 ? <RequestLaboratoryChoices laboratory={laboratory} onChange={(id) => { if (id !== laboratory) { setLaboratory(id); setScheduleDraft(createScheduleDraft(id, scheduleType, scheduleDraft.date, undefined, scheduleData.classes)); setItems((previous) => itemsForLaboratory(previous, id)); setApprover(null); setConfirmed(false); } }} /> : step === 2 ? <><fieldset className="request-type-options">
         <legend className="sr-only">Select a request type</legend>
         {requestTypes.map(({ id, name, icon, description, guidance }) => <label key={id} className={`request-type-option ${requestType === id ? "is-selected" : ""}`}>
           <input type="radio" name="request-type" value={id} checked={requestType === id} onChange={() => setRequestType(id)} required />
@@ -190,7 +196,7 @@ export default function LaboratoryServiceRequest() {
         <fieldset className="request-type-options request-schedule-options">
           <legend className="sr-only">Select a schedule type</legend>
           {scheduleTypes.map(({ id, name, icon, description, guidance }) => <label key={id} className={`request-type-option ${scheduleType === id ? "is-selected" : ""}`}>
-            <input type="radio" name="schedule-type" value={id} checked={scheduleType === id} onChange={() => { if (id !== scheduleType) { setScheduleType(id); setApprover(null); setScheduleDraft(createScheduleDraft(laboratory, id, scheduleDraft.date, scheduleDraft.classId)); } }} required />
+            <input type="radio" name="schedule-type" value={id} checked={scheduleType === id} onChange={() => { if (id !== scheduleType) { setScheduleType(id); setApprover(null); setScheduleDraft(createScheduleDraft(laboratory, id, scheduleDraft.date, scheduleDraft.classId, scheduleData.classes)); } }} required />
             <span className="request-type-icon"><LabIcon name={icon} /></span>
             <strong>{name}</strong>
             <span className="request-type-description">{description}</span>
@@ -201,7 +207,7 @@ export default function LaboratoryServiceRequest() {
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#2587ff" /><circle cx="12" cy="6.5" r="1" fill="white" /><path d="M12 10v7" stroke="white" strokeWidth="2" strokeLinecap="round" /></svg>
           <div><strong>Approval Route</strong><p>{scheduleType === "ON_SCHEDULE" ? "This request will be sent to your assigned Faculty for approval." : "Choose your assigned Faculty or the Dean as the approval recipient in Review Information."}</p></div>
         </aside>
-      </> : step === 4 ? <RequestRoomAvailability laboratory={laboratory} scheduleType={scheduleType} draft={scheduleDraft} onChange={setScheduleDraft} /> : step === 5 ? <RequestEquipmentFields laboratory={laboratory} items={items} notes={notes}
+      </> : step === 4 ? <RequestRoomAvailability laboratory={laboratory} scheduleType={scheduleType} draft={scheduleDraft} official={scheduleData.official} reservations={scheduleData.reservations} classes={scheduleData.classes} loading={scheduleData.loading} loadError={scheduleData.error} onRefresh={scheduleData.refresh} onChange={setScheduleDraft} /> : step === 5 ? <RequestEquipmentFields laboratory={laboratory} items={items} notes={notes}
         onAdd={addRequestedItem}
         onChange={(rowId, patch) => { setItems((previous) => previous.map((item) => item.rowId === rowId ? { ...item, ...patch, rowId } : item)); setConfirmed(false); }}
         onRemove={(rowId) => { setItems((previous) => previous.filter((item) => item.rowId !== rowId)); setConfirmed(false); }}
@@ -210,9 +216,9 @@ export default function LaboratoryServiceRequest() {
             <h3 ref={receiptHeading} id="request-receipt-title" tabIndex={-1}>Demo Request Submitted</h3>
             <p>Reference: <strong>{receipt.reference}</strong></p>
             <p>Selected approver: <strong>{receipt.snapshot.recipient.name}{receipt.snapshot.recipient.role === "FACULTY" ? " (Faculty)" : ""}</strong></p>
-            <p>Saved in the temporary demo request store. No notification was sent and no room was reserved.</p><Link href="/dashboard/classrep/my-reservations">View Request Status</Link>
+            <p>The requested room time is blocked in the demo calendar while this request is pending. No notification was sent.</p><Link href="/dashboard/classrep/my-reservations">View Request Status</Link>
           </section>}
-          <RequestInformationReview draft={receipt?.snapshot ?? draft} confirmed={confirmed} locked={Boolean(receipt)}
+          <RequestInformationReview draft={receipt?.snapshot ?? draft} classes={scheduleData.classes} confirmed={confirmed} locked={Boolean(receipt)}
             onApproverChange={(recipient) => { setApprover(recipient); setConfirmed(false); }} onConfirmedChange={setConfirmed} onEdit={editStep} />
           {!receipt && reviewError && <p className="request-review-error" role="status">{reviewError}</p>}
         </>}

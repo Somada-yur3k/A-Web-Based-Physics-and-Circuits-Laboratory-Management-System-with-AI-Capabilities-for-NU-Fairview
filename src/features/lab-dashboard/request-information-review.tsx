@@ -1,10 +1,11 @@
 import { demoRequestClass } from "./request-participants";
-import { demoAssignedClasses, displayDate, displayTime, laboratoryRooms, timeToMinutes } from "./room-availability";
+import { demoAssignedClasses, displayDate, displayTime, laboratoryRooms, timeToMinutes, type AssignedClass } from "./room-availability";
 import { approvalRecipient, type ApprovalRecipient, type ServiceRequestDraft } from "./request-review";
 import RequestEquipmentSummary from "./request-equipment-summary";
 
 type Props = {
   draft: ServiceRequestDraft;
+  classes?: readonly AssignedClass[];
   confirmed: boolean;
   locked?: boolean;
   onApproverChange: (approver: ApprovalRecipient) => void;
@@ -12,10 +13,10 @@ type Props = {
   onEdit: (step: 1 | 2 | 3 | 4 | 5) => void;
 };
 
-export default function RequestInformationReview({ draft, confirmed, locked = false, onApproverChange, onConfirmedChange, onEdit }: Props) {
-  const subject = demoAssignedClasses.find((item) => item.id === draft.schedule.classId && item.laboratory === draft.laboratory);
+export default function RequestInformationReview({ draft, classes = demoAssignedClasses, confirmed, locked = false, onApproverChange, onConfirmedChange, onEdit }: Props) {
+  const subject = classes.find((item) => item.id === draft.schedule.classId && item.laboratory === draft.laboratory);
   const room = laboratoryRooms.find((item) => item.id === draft.schedule.roomId);
-  const recipient = approvalRecipient(draft);
+  const recipient = approvalRecipient(draft, classes);
   const start = timeToMinutes(draft.schedule.startTime), end = timeToMinutes(draft.schedule.endTime);
   const time = start !== null && end !== null ? `${displayTime(start)} – ${displayTime(end)}` : "Select a time in Step 4";
   const editButton = (step: 1 | 2 | 3 | 4 | 5, label: string) => <button type="button" className="request-review-edit" disabled={locked} aria-label={`Edit ${label}`} onClick={() => onEdit(step)}>Edit</button>;
@@ -51,6 +52,6 @@ export default function RequestInformationReview({ draft, confirmed, locked = fa
       <p className="request-review-recipient" role="status">{recipient ? <>For approval by: <strong>{recipient.role === "FACULTY" ? `${recipient.name} (Faculty)` : "Dean"}</strong></> : "Select Faculty or Dean before submitting."}</p>
     </section>
     <label className="request-review-confirm"><input type="checkbox" checked={confirmed} disabled={locked} onChange={(event) => onConfirmedChange(event.target.checked)} /><span>I have reviewed the request details and confirm that they are correct.</span></label>
-    <p className="request-review-note">Demo only: submissions are saved temporarily until the server restarts. Requests routed to the Dean appear in the Dean review queue. No room is reserved and no notification is sent.</p>
+    <p className="request-review-note">Demo only: submitted requests block the selected room time while pending or approved. Requests routed to the Dean appear in the Dean review queue. No notification is sent; data resets on server restart.</p>
   </div>;
 }

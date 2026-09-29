@@ -32,7 +32,7 @@ const Review = loadSource("src/features/lab-dashboard/faculty-request-review.tsx
 const render = (draft, locked = false) => renderToStaticMarkup(React.createElement(Review, { draft, confirmed: false, locked, onConfirmedChange() {}, onEdit() {} }));
 const lab = { laboratory: "circuits", activityType: "LABORATORY_ACTIVITY", scheduleType: "ON_SCHEDULE", schedule: createScheduleDraft("circuits", "ON_SCHEDULE"), items: [], notes: "" };
 const nonLab = { ...lab, activityType: "NON_LABORATORY_ACTIVITY" };
-const out = { ...nonLab, scheduleType: "OUT_OF_SCHEDULE", schedule: { ...createScheduleDraft("circuits", "OUT_OF_SCHEDULE"), date: "2026-03-13", startTime: "11:30", endTime: "12:30" } };
+const out = { ...nonLab, scheduleType: "OUT_OF_SCHEDULE", schedule: { ...createScheduleDraft("circuits", "OUT_OF_SCHEDULE"), date: "2026-03-13", startTime: "11:20", endTime: "12:20" } };
 assert.deepEqual(facultyRequestSteps(lab.activityType), ["laboratory", "activity", "schedule", "equipment", "review"]);
 assert.equal(facultyRequestSteps(nonLab.activityType).length, 6);
 for (const draft of [lab, nonLab]) {
@@ -54,7 +54,8 @@ assert.match(facultyRequestError({ ...lab, scheduleType: "UNKNOWN" }), /schedule
 assert.ok(facultyRequestError({ ...lab, schedule: { ...lab.schedule, startTime: "12:00" } }));
 assert.ok(facultyRequestError({ ...lab, laboratory: "physics" }));
 assert.equal(facultyRequestError({ ...lab, laboratory: "physics", schedule: createScheduleDraft("physics", "ON_SCHEDULE") }), null);
-assert.match(facultyRequestError({ ...out, schedule: { ...out.schedule, date: "2026-03-14", startTime: "09:00", endTime: "11:00" } }), /pending/);
+const held = [{ id: "held", roomId: "circuits-301", date: "2026-03-13", start: 680, end: 740, kind: "pending", title: "Pending request", section: "CPE22A", reference: "TEST-1" }];
+assert.match(facultyRequestError(out, held), /pending/);
 assert.ok(facultyRequestError({ ...lab, items: [{ rowId: 1, kind: "Equipment", name: "", quantity: 1 }] }));
 const stockItems = addCatalogItem([], "power-supply", "circuits", 1);
 assert.equal(facultyRequestError({ ...lab, items: stockItems }), null);

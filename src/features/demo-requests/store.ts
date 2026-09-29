@@ -5,9 +5,18 @@ import { createDemoRequestSnapshot, type ServiceRequestDraft } from "@/features/
 import { createFacultyDemoSnapshot, type FacultyRequestDraft } from "@/features/lab-dashboard/faculty-request-model";
 import type { DemoRequestRecord } from "./types";
 import { staffLaboratory } from "@/features/staff/store";
+import { readOfficialBlocks } from "@/features/lab-dashboard/official-schedule-store";
+import { classesForOfficialBlocks, roomBlocksForDate, timeToMinutes, type AvailabilityBlock } from "@/features/lab-dashboard/room-availability";
 
 declare global { var laboratoryDemoRequests: Map<string, DemoRequestRecord> | undefined; }
 const requests = globalThis.laboratoryDemoRequests ??= new Map<string, DemoRequestRecord>();
+
+export function reservationBlocks(): AvailabilityBlock[] {
+  return [...requests.values()].filter((record) => record.status !== "Rejected").map((record) => {
+    const { schedule } = record.snapshot;
+    return { id: `reservation-${record.reference}`, roomId: schedule.roomId, date: schedule.date, start: timeToMinutes(schedule.startTime)!, end: timeToMinutes(schedule.endTime)!, kind: record.status === "Approved" ? "approved" as const : "pending" as const, title: record.status === "Approved" ? "Reserved request" : "Pending request", section: record.requester.displayName, reference: record.reference };
+  });
+}
 
 // Check JSON shape before using the shared form validators. Only accepted fields
 // enter a snapshot; identities, routing, status and references are server-derived.
@@ -37,17 +46,21 @@ export function submitRequest(user: DemoUser, input: unknown): DemoRequestRecord
     }),
   };
   let snapshot: DemoRequestRecord["snapshot"], recipient: DemoRequestRecord["recipient"];
+  const official = readOfficialBlocks();
+  const classes = classesForOfficialBlocks(official);
+  const blocks = roomBlocksForDate(common.schedule.roomId, common.schedule.date, official, reservationBlocks());
   if (user.role === "classrep") {
     if (!Array.isArray(body.students) || body.students.length > 100 || (body.requestType !== "GROUP" && body.requestType !== "STUDENT_ONLY") || ![null, "FACULTY", "DEAN"].includes(body.approver as null | string)) throw new Error("Invalid students or approval recipient.");
-    snapshot = createDemoRequestSnapshot({ ...common, requestType: body.requestType, approver: body.approver, students: body.students.map((value) => { const student = object(value); return { name: string(student.name, 120), studentId: string(student.studentId, 12) }; }) } as ServiceRequestDraft);
+    snapshot = createDemoRequestSnapshot({ ...common, requestType: body.requestType, approver: body.approver, students: body.students.map((value) => { const student = object(value); return { name: string(student.name, 120), studentId: string(student.studentId, 12) }; }) } as ServiceRequestDraft, blocks, classes);
     recipient = snapshot.recipient.role;
   } else {
-    snapshot = createFacultyDemoSnapshot({ ...common, activityType: body.activityType } as FacultyRequestDraft);
+    snapshot = createFacultyDemoSnapshot({ ...common, activityType: body.activityType } as FacultyRequestDraft, blocks, classes);
     recipient = snapshot.recipient;
   }
   const record: DemoRequestRecord = {
     reference: `DEMO-${randomUUID().toUpperCase()}`,
     requester: { accountId: user.accountId, displayName: user.displayName, role: user.role }, snapshot, recipient,
+    assignedClass: classes.find((item) => item.id === snapshot.schedule.classId),
     status: recipient === "DEAN" ? "Pending Dean Approval" : recipient === "FACULTY" ? "Pending Faculty Approval" : "Awaiting Reservation",
     createdAt: new Date().toISOString(), sample: false, decision: null,
   };
@@ -56,7 +69,7 @@ export function submitRequest(user: DemoUser, input: unknown): DemoRequestRecord
 }
 export function visibleRequests(user: DemoUser) {
   const laboratory = staffLaboratory(user);
-  return [...requests.values()].filter((record) => laboratory ? record.snapshot.laboratory === laboratory : user.role === "dean" ? record.recipient === "DEAN" && record.snapshot.scheduleType === "OUT_OF_SCHEDULE" : record.requester.accountId === user.accountId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((record) => structuredClone(record));
+  return [...requests.values()].filter((record) => laboratory ? record.snapshot.laboratory === laboratory : user.role === "headlab" ? true : user.role === "dean" ? record.recipient === "DEAN" && record.snapshot.scheduleType === "OUT_OF_SCHEDULE" : record.requester.accountId === user.accountId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((record) => structuredClone(record));
 }
 export function decideRequest(user: DemoUser, reference: string, decision: "Approved" | "Rejected", remarks: string) {
   const record = requests.get(reference);
@@ -70,9 +83,26 @@ export function decideRequest(user: DemoUser, reference: string, decision: "Appr
 
 // Clearly marked examples are separate from real submissions in the demo.
 if (!requests.size) {
-  const schedule = { classId: "circuits-electronics", roomId: "circuits-301", requestFor: "ONE_TIME", date: "2026-03-13", startTime: "11:30", endTime: "12:30" };
-  const sample = submitRequest({ role: "classrep", accountId: "sample-classrep", displayName: "Patricia Lim", initials: "PL", dashboardPath: "" }, { laboratory: "circuits", requestType: "GROUP", students: [{ name: "Patricia Lim", studentId: "2024-1031816" }, { name: "Miguel Santos", studentId: "2024-1031817" }], scheduleType: "OUT_OF_SCHEDULE", schedule, items: [], notes: "Additional time for our circuit experiment. Assigned Faculty is unavailable.", approver: "DEAN" });
+  const schedule = { classId: "circuits-electronics", roomId: "circuits-301", requestFor: "ONE_TIME", date: "2026-03-13", startTime: "11:20", endTime: "12:20" };
+  const sample = submitRequest({ role: "classrep", accountId: "sample-classrep", displayName: "Patricia Lim", initials: "PL", dashboardPath: "" }, { laboratory: "circuits", requestType: "GROUP", students: [{ name: "Patricia Lim", studentId: "2024-1031816" }, { name: "Miguel Santos", studentId: "2024-1031817" }], scheduleType: "OUT_OF_SCHEDULE", schedule, items: [{ rowId: 1, catalogId: "breadboard", kind: "Equipment", name: "Breadboard", quantity: 2 }, { rowId: 2, catalogId: "resistor-kit", kind: "Material", name: "Resistor Kit", quantity: 1 }], notes: "Additional time for our circuit experiment. Assigned Faculty is unavailable.", approver: "DEAN" });
   requests.get(sample.reference)!.sample = true;
-  const faculty = submitRequest({ role: "faculty", accountId: "sample-faculty", displayName: "Dr. Maria Santos", initials: "MS", dashboardPath: "" }, { laboratory: "physics", activityType: "NON_LABORATORY_ACTIVITY", scheduleType: "OUT_OF_SCHEDULE", schedule: { ...schedule, classId: "physics-general", roomId: "physics-201", date: "2026-03-12", startTime: "08:00", endTime: "09:00" }, items: [], notes: "Faculty demonstration for an outreach activity." });
+  const faculty = submitRequest({ role: "faculty", accountId: "sample-faculty", displayName: "Dr. Maria Santos", initials: "MS", dashboardPath: "" }, { laboratory: "physics", activityType: "NON_LABORATORY_ACTIVITY", scheduleType: "OUT_OF_SCHEDULE", schedule: { ...schedule, classId: "physics-general", roomId: "physics-201", date: "2026-03-12", startTime: "16:40", endTime: "17:20" }, items: [{ rowId: 1, catalogId: "vernier-caliper", kind: "Equipment", name: "Vernier Caliper", quantity: 1 }, { rowId: 2, kind: "Material", name: "Demonstration worksheet", quantity: 10 }], notes: "Faculty demonstration for an outreach activity." });
   requests.get(faculty.reference)!.sample = true;
+}
+// Preserve requests across development reloads while keeping untouched sample
+// records aligned with the current demonstration content.
+for (const record of requests.values()) {
+  if (!record.sample) continue;
+  record.assignedClass ??= classesForOfficialBlocks(readOfficialBlocks()).find((item) => item.id === record.snapshot.schedule.classId);
+  if (!record.snapshot.items.length) record.snapshot.items = record.snapshot.laboratory === "circuits"
+    ? [{ rowId: 1, catalogId: "breadboard", kind: "Equipment", name: "Breadboard", quantity: 2 }, { rowId: 2, catalogId: "resistor-kit", kind: "Material", name: "Resistor Kit", quantity: 1 }]
+    : [{ rowId: 1, catalogId: "vernier-caliper", kind: "Equipment", name: "Vernier Caliper", quantity: 1 }, { rowId: 2, kind: "Material", name: "Demonstration worksheet", quantity: 10 }];
+  if (record.snapshot.laboratory === "circuits" && record.snapshot.schedule.startTime === "11:30") {
+    record.snapshot.schedule.startTime = "11:20";
+    record.snapshot.schedule.endTime = "12:20";
+  }
+  if (record.snapshot.laboratory === "physics" && record.snapshot.schedule.startTime === "08:00") {
+    record.snapshot.schedule.startTime = "16:40";
+    record.snapshot.schedule.endTime = "17:20";
+  }
 }

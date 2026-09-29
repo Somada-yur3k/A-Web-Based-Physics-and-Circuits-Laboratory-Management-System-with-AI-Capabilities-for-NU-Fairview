@@ -61,6 +61,7 @@
 .review-equipment-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 0; margin: 0; list-style: none; }
 .review-equipment-list > li { display: grid; grid-template-columns: 50px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0; padding: 12px; border: 1px solid #e0e7f2; border-radius: 7px; }
 .review-equipment-list .equipment-thumbnail { width: 50px; height: 56px; }
+.review-equipment-list .request-item-image { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
 .review-equipment-copy { display: grid; gap: 5px; min-width: 0; overflow-wrap: anywhere; }
 .review-equipment-copy strong { font-size: 13px; }
 .review-equipment-copy > span { color: #7284a5; font-size: 12px; }

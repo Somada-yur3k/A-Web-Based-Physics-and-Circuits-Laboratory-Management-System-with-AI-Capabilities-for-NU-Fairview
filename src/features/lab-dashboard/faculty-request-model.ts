@@ -1,4 +1,4 @@
-import { scheduleDraftError, type RequestLaboratory, type RequestScheduleType, type ScheduleDraft } from "./room-availability";
+import { scheduleDraftError, type AssignedClass, type AvailabilityBlock, type RequestLaboratory, type RequestScheduleType, type ScheduleDraft } from "./room-availability";
 import { requestedItemsError, type RequestedItem } from "./request-review";
 
 export type FacultyActivityType = "LABORATORY_ACTIVITY" | "NON_LABORATORY_ACTIVITY";
@@ -20,15 +20,15 @@ export function facultyApprovalRecipient(draft: FacultyRequestDraft): "DEAN" | n
   return draft.activityType === "NON_LABORATORY_ACTIVITY" && draft.scheduleType === "OUT_OF_SCHEDULE" ? "DEAN" : null;
 }
 
-export function facultyRequestError(draft: FacultyRequestDraft): string | null {
+export function facultyRequestError(draft: FacultyRequestDraft, blocks?: AvailabilityBlock[], classes?: readonly AssignedClass[]): string | null {
   if (draft.activityType !== "LABORATORY_ACTIVITY" && draft.activityType !== "NON_LABORATORY_ACTIVITY") return "Choose an activity type before submitting.";
   if (draft.scheduleType !== "ON_SCHEDULE" && draft.scheduleType !== "OUT_OF_SCHEDULE") return "Choose a valid schedule type.";
   if (draft.activityType === "LABORATORY_ACTIVITY" && draft.scheduleType !== "ON_SCHEDULE") return "Laboratory Activity must use your assigned class schedule.";
-  return scheduleDraftError(draft.laboratory, draft.scheduleType, draft.schedule) ?? requestedItemsError(draft.items, draft.notes, draft.laboratory);
+  return scheduleDraftError(draft.laboratory, draft.scheduleType, draft.schedule, blocks, classes) ?? requestedItemsError(draft.items, draft.notes, draft.laboratory);
 }
 
-export function createFacultyDemoSnapshot(draft: FacultyRequestDraft) {
-  const error = facultyRequestError(draft);
+export function createFacultyDemoSnapshot(draft: FacultyRequestDraft, blocks?: AvailabilityBlock[], classes?: readonly AssignedClass[]) {
+  const error = facultyRequestError(draft, blocks, classes);
   if (error) throw new Error(error);
   const recipient = facultyApprovalRecipient(draft);
   return {

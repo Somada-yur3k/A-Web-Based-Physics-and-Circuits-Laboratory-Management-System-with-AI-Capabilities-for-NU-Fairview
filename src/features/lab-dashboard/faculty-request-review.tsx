@@ -1,11 +1,11 @@
-import { demoAssignedClasses, displayDate, displayTime, laboratoryRooms, timeToMinutes } from "./room-availability";
+import { demoAssignedClasses, displayDate, displayTime, laboratoryRooms, timeToMinutes, type AssignedClass } from "./room-availability";
 import { facultyApprovalRecipient, type FacultyRequestDraft, type FacultyRequestStep } from "./faculty-request-model";
 import RequestEquipmentSummary from "./request-equipment-summary";
 
-type Props = { draft: FacultyRequestDraft; confirmed: boolean; locked: boolean; onConfirmedChange: (value: boolean) => void; onEdit: (step: FacultyRequestStep) => void };
+type Props = { draft: FacultyRequestDraft; classes?: readonly AssignedClass[]; confirmed: boolean; locked: boolean; onConfirmedChange: (value: boolean) => void; onEdit: (step: FacultyRequestStep) => void };
 
-export default function FacultyRequestReview({ draft, confirmed, locked, onConfirmedChange, onEdit }: Props) {
-  const subject = demoAssignedClasses.find((item) => item.id === draft.schedule.classId && item.laboratory === draft.laboratory);
+export default function FacultyRequestReview({ draft, classes = demoAssignedClasses, confirmed, locked, onConfirmedChange, onEdit }: Props) {
+  const subject = classes.find((item) => item.id === draft.schedule.classId && item.laboratory === draft.laboratory);
   const room = laboratoryRooms.find((item) => item.id === draft.schedule.roomId);
   const start = timeToMinutes(draft.schedule.startTime), end = timeToMinutes(draft.schedule.endTime);
   const recipient = facultyApprovalRecipient(draft);
@@ -35,6 +35,6 @@ export default function FacultyRequestReview({ draft, confirmed, locked, onConfi
       {recipient && <p className="request-review-recipient">For approval by: <strong>Dean</strong></p>}
     </section>
     <label className="request-review-confirm"><input type="checkbox" checked={confirmed} disabled={locked} onChange={(event) => onConfirmedChange(event.target.checked)} /><span>I have reviewed the request details and confirm that they are correct.</span></label>
-    <p className="request-review-note">Demo only: submissions are saved temporarily until the server restarts. Requests routed to the Dean appear in the Dean review queue. No room is reserved and no notification is sent.</p>
+    <p className="request-review-note">Demo only: submitted requests block the selected room time while pending or approved. Requests routed to the Dean appear in the Dean review queue. No notification is sent; data resets on server restart.</p>
   </div>;
 }

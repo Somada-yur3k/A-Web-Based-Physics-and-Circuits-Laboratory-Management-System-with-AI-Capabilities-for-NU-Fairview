@@ -5,18 +5,19 @@ import LabIcon from "@/components/dashboard/lab-icon";
 import RequestEquipmentSummary from "@/features/lab-dashboard/request-equipment-summary";
 import { demoAssignedClasses, displayDate, displayTime, laboratoryRooms, timeToMinutes } from "@/features/lab-dashboard/room-availability";
 import type { DemoRequestRecord } from "./types";
+import type { InventoryItem } from "@/features/staff/types";
 import "./request-queue.css";
 
 function Status({ record }: { record: DemoRequestRecord }) {
   return <span className={`dean-status ${record.status === "Approved" ? "approved" : record.status === "Rejected" ? "rejected" : "pending"}`}>{record.status}</span>;
 }
-export function RequestDialog({ record, dean, onClose, onDecision }: { record: DemoRequestRecord; dean: boolean; onClose: () => void; onDecision: (record: DemoRequestRecord) => void }) {
+export function RequestDialog({ record, dean, inventory, onClose, onDecision }: { record: DemoRequestRecord; dean: boolean; inventory?: readonly InventoryItem[]; onClose: () => void; onDecision: (record: DemoRequestRecord) => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [remarks, setRemarks] = useState("");
   const [confirmation, setConfirmation] = useState<"Approved" | "Rejected" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const subject = demoAssignedClasses.find((item) => item.id === record.snapshot.schedule.classId);
+  const subject = record.assignedClass ?? demoAssignedClasses.find((item) => item.id === record.snapshot.schedule.classId);
   const room = laboratoryRooms.find((item) => item.id === record.snapshot.schedule.roomId);
   const snapshot = record.snapshot;
   useEffect(() => { dialog.current?.showModal(); }, []);
@@ -48,13 +49,13 @@ export function RequestDialog({ record, dean, onClose, onDecision }: { record: D
         <div><dt>Approval recipient</dt><dd>{record.recipient === "DEAN" ? "Dean" : record.recipient === "FACULTY" ? `Faculty · ${subject?.faculty}` : "No academic approval required"}</dd></div>
       </dl>
       {"students" in snapshot && <section><h3>Participating students ({snapshot.students.length})</h3><ul className="dean-students">{snapshot.students.map((student) => <li key={student.studentId}><strong>{student.name}</strong><span>{student.studentId} · {subject?.section}</span></li>)}</ul></section>}
-      <section><h3>Equipment & Materials</h3><RequestEquipmentSummary items={snapshot.items} /></section>
+      <section><h3>Equipment & Materials</h3><RequestEquipmentSummary items={snapshot.items} inventory={inventory} laboratory={snapshot.laboratory} /></section>
       <section><h3>Requester notes</h3><p className="dean-notes">{snapshot.notes || "No additional notes."}</p></section>
       {record.decision ? <section className="dean-decision"><h3>{record.status} by {record.decision.by}</h3><p>{new Date(record.decision.at).toLocaleString()}</p><p className="dean-notes">{record.decision.remarks || "No additional remarks."}</p></section> : dean && <section className="dean-decision"><label htmlFor="dean-remarks">Decision remarks <span>(required when rejecting)</span></label><textarea id="dean-remarks" value={remarks} disabled={busy} maxLength={1000} rows={3} onChange={(event) => { setRemarks(event.target.value); setConfirmation(null); setError(""); }} placeholder="Explain your decision to the requester…" />
         {confirmation ? <div className="dean-confirmation" role="status"><p>{confirmation === "Approved" ? "Approve this request? It will be marked approved for laboratory reservation processing." : "Reject this request? Your reason will be visible to the requester."}</p><div className="dean-actions"><button className="lab-outline-button" disabled={busy} onClick={() => setConfirmation(null)}>Cancel</button><button className={confirmation === "Rejected" ? "dean-reject" : "dean-approve"} disabled={busy} onClick={save}>{busy ? "Saving…" : "Confirm Decision"}</button></div></div> : <div className="dean-actions"><button className="dean-reject" onClick={() => { if (!remarks.trim()) setError("Enter a reason before rejecting this request."); else { setError(""); setConfirmation("Rejected"); } }}>Reject Request</button><button className="dean-approve" onClick={() => { setError(""); setConfirmation("Approved"); }}>Approve Request</button></div>}
       </section>}
       {error && <p className="dean-error" role="alert">{error}</p>}
-      <p className="dean-note">Demo only. Approval does not reserve a room, hold stock, or send notifications. Requests and decisions reset when the server restarts.</p>
+      <p className="dean-note">Demo only. Pending and approved requests block the selected room time in the calendar. Equipment stock is not held and no notifications are sent. Data resets when the server restarts.</p>
     </div>
   </dialog>;
 }

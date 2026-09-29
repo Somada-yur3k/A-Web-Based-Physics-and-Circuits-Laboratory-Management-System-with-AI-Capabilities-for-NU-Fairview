@@ -27,74 +27,50 @@ function loadSource(file) {
 }
 
 const model = loadSource("src/features/lab-dashboard/room-availability.ts");
-const { createScheduleDraft, scheduleDraftError, roomBlocksForDate, demoOtherRequests, laboratoryRooms, addDateDays, weekStart, parseDate, rangesOverlap } = model;
-const on = createScheduleDraft("circuits", "ON_SCHEDULE");
-const out = createScheduleDraft("circuits", "OUT_OF_SCHEDULE");
-const validateOut = (patch) => scheduleDraftError("circuits", "OUT_OF_SCHEDULE", { ...out, ...patch });
-
-assert.equal(on.roomId, "circuits-301");
-assert.equal(on.date, "2026-03-10");
-assert.equal(on.startTime, "13:00");
-assert.equal(on.endTime, "16:00");
-assert.equal(scheduleDraftError("circuits", "ON_SCHEDULE", on), null, "The assigned regular block is eligible.");
-assert.notEqual(scheduleDraftError("circuits", "ON_SCHEDULE", { ...on, roomId: "circuits-302" }), null);
-assert.notEqual(scheduleDraftError("circuits", "ON_SCHEDULE", { ...on, date: "2026-03-11" }), null);
-assert.notEqual(scheduleDraftError("circuits", "ON_SCHEDULE", { ...on, startTime: "12:30" }), null);
-assert.equal(scheduleDraftError("physics", "ON_SCHEDULE", createScheduleDraft("physics", "ON_SCHEDULE")), null);
-assert.equal(weekStart("2026-03-14"), "2026-03-09");
-assert.equal(weekStart("2026-03-15"), "2026-03-09");
-assert.equal(weekStart("2026-04-01"), "2026-03-30");
-assert.equal(addDateDays("2026-03-09", 7), "2026-03-16");
-assert.equal(parseDate("2026-02-30"), null);
-
-const free = { date: "2026-03-13", startTime: "11:30", endTime: "12:30" };
-assert.equal(validateOut(free), null, "A vacant range is eligible, including a boundary next to an existing request.");
-assert.match(validateOut({ date: "2026-03-14", startTime: "09:00", endTime: "11:00" }), /pending/);
-assert.match(validateOut({ date: "2026-03-13", startTime: "10:00", endTime: "11:00" }), /approved/);
-assert.match(validateOut({ date: "2026-03-09", startTime: "13:00", endTime: "14:00" }), /regular class schedule/);
-assert.match(validateOut({ date: "2026-03-10", roomId: "circuits-302", startTime: "13:00", endTime: "14:00" }), /outside your assigned class schedule/, "Moving rooms does not bypass the class's regular schedule.");
-assert.match(validateOut({ ...free, startTime: "10:30" }), /approved/, "Extending through a held block is rejected.");
-assert.match(validateOut({ ...free, startTime: "11:35" }), /30-minute/);
-assert.match(validateOut({ ...free, startTime: "12:30", endTime: "12:30" }), /later/);
-assert.match(validateOut({ ...free, startTime: "06:30", endTime: "07:00" }), /7:00/);
-assert.match(validateOut({ ...free, startTime: "16:30", endTime: "17:30" }), /5:00/);
-assert.equal(validateOut({ date: "2026-03-14", startTime: "16:30", endTime: "17:00" }), null);
-assert.match(validateOut({ ...free, date: "2026-03-15" }), /Monday to Saturday/);
-assert.match(validateOut({ ...free, date: "2026-02-30" }), /valid date/);
-assert.match(validateOut({ ...free, roomId: "physics-201" }), /selected laboratory/);
-assert.match(validateOut({ ...free, classId: "physics-general" }), /assigned class/);
-
-const regularWeek1 = roomBlocksForDate("circuits-301", "2026-03-10").filter((block) => block.kind === "laboratory" || block.kind === "lecture");
-const regularWeek2 = roomBlocksForDate("circuits-301", "2026-03-17").filter((block) => block.kind === "laboratory" || block.kind === "lecture");
-assert.deepEqual(regularWeek1.map(({ id, start, end }) => ({ id, start, end })), regularWeek2.map(({ id, start, end }) => ({ id, start, end })), "Regular schedules recur weekly.");
-assert.ok(roomBlocksForDate("circuits-301", "2026-03-14").some((block) => block.reference === "CIR-2026-019"));
-assert.ok(!roomBlocksForDate("circuits-301", "2026-03-21").some((block) => block.reference === "CIR-2026-019"), "Dated requests do not recur automatically.");
-for (const request of demoOtherRequests) {
-  assert.ok(roomBlocksForDate(request.roomId, request.date).some((block) => block.id === request.id));
-  for (const room of laboratoryRooms.filter((room) => room.id !== request.roomId)) assert.ok(!roomBlocksForDate(room.id, request.date).some((block) => block.id === request.id));
+const { initialOfficialBlocks } = loadSource("src/features/lab-dashboard/official-schedule-data.ts");
+const { calendarBlocks, createScheduleDraft, scheduleDraftError, roomBlocksForDate, classesForOfficialBlocks, laboratoryRooms, addDateDays, rangesOverlap } = model;
+assert.deepEqual(laboratoryRooms.map((room) => room.id), ["circuits-301", "physics-201", "physics-202"]);
+assert.equal(initialOfficialBlocks.length, 37);
+for (const room of laboratoryRooms) for (let weekday = 1; weekday <= 6; weekday++) {
+  const blocks = initialOfficialBlocks.filter((block) => block.roomId === room.id && block.weekday === weekday).sort((a, b) => a.start - b.start);
+  for (const block of blocks) assert.ok(block.start >= 420 && block.end <= 1260 && block.start < block.end && block.start % 20 === 0 && block.end % 20 === 0);
+  for (let index = 1; index < blocks.length; index++) assert.equal(rangesOverlap(blocks[index - 1].start, blocks[index - 1].end, blocks[index].start, blocks[index].end), false);
 }
-for (const room of laboratoryRooms) {
-  for (let day = 0; day < 14; day++) {
-    const blocks = roomBlocksForDate(room.id, addDateDays("2026-03-09", day));
-    for (const block of blocks) assert.ok(block.start >= 420 && block.end <= 1020 && block.start < block.end && block.start % 30 === 0 && block.end % 30 === 0);
-    for (let index = 1; index < blocks.length; index++) assert.equal(rangesOverlap(blocks[index - 1].start, blocks[index - 1].end, blocks[index].start, blocks[index].end), false, "Sample blocks must not hide each other in merged calendar cells.");
-  }
-}
-const holdOnOwnBlock = { id: "test-held-block", roomId: on.roomId, date: on.date, start: 780, end: 960, kind: "pending", title: "Pending", section: "BSIT 2A", reference: "TEST-HOLD" };
-assert.match(scheduleDraftError("circuits", "ON_SCHEDULE", on, [...roomBlocksForDate(on.roomId, on.date), holdOnOwnBlock]), /pending/, "The own-class exception does not bypass an existing hold.");
+const classes = classesForOfficialBlocks(initialOfficialBlocks);
+const on = createScheduleDraft("circuits", "ON_SCHEDULE", undefined, undefined, classes);
+assert.deepEqual([on.date, on.startTime, on.endTime], ["2026-03-11", "12:20", "16:40"]);
+assert.equal(scheduleDraftError("circuits", "ON_SCHEDULE", on, roomBlocksForDate(on.roomId, on.date), classes), null);
+assert.match(scheduleDraftError("circuits", "ON_SCHEDULE", { ...on, roomId: "physics-201" }, [], classes), /selected laboratory/);
+assert.match(scheduleDraftError("circuits", "OUT_OF_SCHEDULE", { ...on, startTime: "12:40", endTime: "13:00" }, roomBlocksForDate(on.roomId, on.date), classes), /outside your assigned class schedule/);
+assert.match(scheduleDraftError("circuits", "OUT_OF_SCHEDULE", { ...on, date: "2026-03-13", startTime: "11:30", endTime: "12:20" }, [], classes), /20-minute/);
+assert.match(scheduleDraftError("circuits", "OUT_OF_SCHEDULE", { ...on, date: "2026-03-13", startTime: "20:40", endTime: "21:20" }, [], classes), /9:00 PM/);
+assert.ok(roomBlocksForDate("physics-201", "2026-03-11").some((block) => block.title === "ENPHYS1L"));
+assert.ok(roomBlocksForDate("physics-202", "2026-03-11").some((block) => block.title === "ABCOM33X"));
+assert.deepEqual(roomBlocksForDate("circuits-301", "2026-03-11").map((block) => block.id), roomBlocksForDate("circuits-301", addDateDays("2026-03-11", 7)).map((block) => block.id));
+
+const pending = { id: "test-reservation", roomId: "circuits-301", date: "2026-03-13", start: 680, end: 740, kind: "pending", title: "Pending request", section: "CPE22A", reference: "TEST-1" };
+const vacant = { ...on, date: pending.date, startTime: "11:20", endTime: "12:20" };
+assert.match(scheduleDraftError("circuits", "OUT_OF_SCHEDULE", vacant, roomBlocksForDate(vacant.roomId, vacant.date, initialOfficialBlocks, [pending]), classes), /pending/);
+assert.equal(scheduleDraftError("circuits", "OUT_OF_SCHEDULE", { ...vacant, startTime: "12:20", endTime: "12:40" }, roomBlocksForDate(vacant.roomId, vacant.date, initialOfficialBlocks, [pending]), classes), null);
+
+const changed = initialOfficialBlocks.map((block) => block.assignedClassId === on.classId ? { ...block, start: 760, end: 1020 } : block);
+const changedClasses = classesForOfficialBlocks(changed);
+const moved = createScheduleDraft("circuits", "ON_SCHEDULE", on.date, on.classId, changedClasses);
+assert.equal(moved.startTime, "12:40");
+assert.equal(scheduleDraftError("circuits", "ON_SCHEDULE", moved, roomBlocksForDate(moved.roomId, moved.date, changed), changedClasses), null);
+assert.notEqual(scheduleDraftError("circuits", "ON_SCHEDULE", on, roomBlocksForDate(on.roomId, on.date, changed), changedClasses), null);
+
+const ownClass = roomBlocksForDate(on.roomId, on.date).find((block) => block.assignedClassId === on.classId);
+const heldOnClass = { ...pending, date: on.date, start: 810, end: 870 };
+const segments = calendarBlocks([ownClass, heldOnClass]);
+assert.deepEqual(segments.map((block) => [block.id, block.gridStart, block.gridEnd]), [[ownClass.id, 740, 800], [pending.id, 800, 880], [ownClass.id, 880, 1000]], "A reservation splits the official block and remains visible, including older 30-minute times.");
+assert.equal(segments[1].start, 810, "Block details preserve exact reservation times.");
 
 const Component = loadSource("src/features/lab-dashboard/request-room-availability.tsx").default;
-const render = (scheduleType, draft) => renderToStaticMarkup(React.createElement(Component, { laboratory: "circuits", scheduleType, draft, onChange() {} }));
-const onHtml = render("ON_SCHEDULE", on);
-assert.match(onHtml, /Room Availability/);
-assert.match(onHtml, /CIR-2026-019/);
-assert.match(onHtml, /CIR-2026-018/);
-assert.match(onHtml, /aria-label="Previous week"/);
-assert.match(onHtml, /aria-label="Next week"/);
-assert.match(onHtml, /<td[^>]*rowSpan="6"[^>]*class="availability-selection"/i);
-const outHtml = render("OUT_OF_SCHEDULE", { ...out, ...free });
-assert.match(outHtml, /<td[^>]*class="availability-selection"/);
-assert.ok([...outHtml.matchAll(/<button[^>]*class="availability-slot"[^>]*>/g)].some(([button]) => !button.includes("disabled")), "Vacant eligible slots are selectable in Out-of-Schedule mode.");
-const busyHtml = render("OUT_OF_SCHEDULE", { ...out, date: "2026-03-14", startTime: "09:00", endTime: "11:00" });
-assert.ok(!/<td[^>]*class="availability-selection"/.test(busyHtml), "Invalid ranges never paint over existing requests.");
-console.log("Room availability checks passed: weekly schedules, dated pending/approved requests, room isolation, time conflicts, On-/Out-of-Schedule rules, and calendar rendering.");
+const html = renderToStaticMarkup(React.createElement(Component, { laboratory: "physics", scheduleType: "ON_SCHEDULE", draft: createScheduleDraft("physics", "ON_SCHEDULE"), official: initialOfficialBlocks, reservations: [], classes, loading: false, loadError: "", onRefresh() {}, onChange() {} }));
+assert.match(html, /Official schedule/);
+assert.match(html, /Physics 1/);
+assert.match(html, /Physics 2/);
+assert.match(html, /ENPHYS1L/);
+assert.match(html, /9:00 PM/);
+console.log("Room availability checks passed: three official timetables, 20-minute slots, edited class times, reservation conflicts, and request calendar rendering.");

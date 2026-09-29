@@ -1,5 +1,5 @@
 import { areParticipantDetailsValid, type RequestType, type StudentDetails } from "./request-participants";
-import { demoAssignedClasses, scheduleDraftError, type RequestLaboratory, type RequestScheduleType, type ScheduleDraft } from "./room-availability";
+import { demoAssignedClasses, scheduleDraftError, type AssignedClass, type AvailabilityBlock, type RequestLaboratory, type RequestScheduleType, type ScheduleDraft } from "./room-availability";
 import { findCatalogItem } from "./equipment-catalog";
 
 export type ApprovalRecipient = "FACULTY" | "DEAN";
@@ -30,8 +30,8 @@ export function requestedItemsError(items: readonly RequestedItem[], notes: stri
   return null;
 }
 
-export function approvalRecipient(draft: ServiceRequestDraft): { role: ApprovalRecipient; name: string } | null {
-  const subject = demoAssignedClasses.find((item) => item.id === draft.schedule.classId && item.laboratory === draft.laboratory);
+export function approvalRecipient(draft: ServiceRequestDraft, classes: readonly AssignedClass[] = demoAssignedClasses): { role: ApprovalRecipient; name: string } | null {
+  const subject = classes.find((item) => item.id === draft.schedule.classId && item.laboratory === draft.laboratory);
   if (!subject) return null;
   // On-Schedule always uses the selected subject's Faculty, regardless of an old Out-of-Schedule choice.
   if (draft.scheduleType === "ON_SCHEDULE" || draft.approver === "FACULTY") return { role: "FACULTY", name: subject.faculty };
@@ -39,21 +39,21 @@ export function approvalRecipient(draft: ServiceRequestDraft): { role: ApprovalR
   return null;
 }
 
-export function serviceRequestError(draft: ServiceRequestDraft): string | null {
+export function serviceRequestError(draft: ServiceRequestDraft, blocks?: AvailabilityBlock[], classes: readonly AssignedClass[] = demoAssignedClasses): string | null {
   if (!areParticipantDetailsValid(draft.requestType, draft.students)) return "Check the student names and unique NU Student IDs in Step 2.";
   if (draft.scheduleType !== "ON_SCHEDULE" && draft.scheduleType !== "OUT_OF_SCHEDULE") return "Select a schedule type in Step 3.";
-  const scheduleError = scheduleDraftError(draft.laboratory, draft.scheduleType, draft.schedule);
+  const scheduleError = scheduleDraftError(draft.laboratory, draft.scheduleType, draft.schedule, blocks, classes);
   if (scheduleError) return scheduleError;
   const itemsError = requestedItemsError(draft.items, draft.notes, draft.laboratory);
   if (itemsError) return itemsError;
-  if (!approvalRecipient(draft)) return "Choose Faculty or Dean for approval.";
+  if (!approvalRecipient(draft, classes)) return "Choose Faculty or Dean for approval.";
   return null;
 }
 
-export function createDemoRequestSnapshot(draft: ServiceRequestDraft) {
-  const error = serviceRequestError(draft);
+export function createDemoRequestSnapshot(draft: ServiceRequestDraft, blocks?: AvailabilityBlock[], classes: readonly AssignedClass[] = demoAssignedClasses) {
+  const error = serviceRequestError(draft, blocks, classes);
   if (error) throw new Error(error);
-  const recipient = approvalRecipient(draft)!;
+  const recipient = approvalRecipient(draft, classes)!;
   return {
     ...draft,
     requestType: draft.requestType!,

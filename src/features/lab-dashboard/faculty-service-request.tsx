@@ -9,6 +9,7 @@ import RequestEquipmentFields from "./request-equipment-fields";
 import FacultyRequestReview from "./faculty-request-review";
 import { addCatalogItem, itemsForLaboratory } from "./equipment-catalog";
 import useRequestProgress from "./use-request-progress";
+import useOfficialSchedule from "./use-official-schedule";
 import { createScheduleDraft, scheduleDraftError, type RequestLaboratory, type RequestScheduleType, type ScheduleDraft } from "./room-availability";
 import { requestedItemsError, type RequestedItem } from "./request-review";
 import { facultyRequestError, facultyRequestSteps, type FacultyActivityType, type FacultyDemoSnapshot, type FacultyRequestDraft, type FacultyRequestStep } from "./faculty-request-model";
@@ -33,6 +34,7 @@ const scheduleChoices = [
 ] as const;
 
 export default function FacultyServiceRequest() {
+  const scheduleData = useOfficialSchedule();
   const [step, setStep] = useState<FacultyRequestStep>("laboratory");
   const [laboratory, setLaboratory] = useState<RequestLaboratory>("circuits");
   const [activityType, setActivityType] = useState<FacultyActivityType | null>(null);
@@ -55,7 +57,8 @@ export default function FacultyServiceRequest() {
   const index = steps.indexOf(step);
   const nextStep = steps[index + 1];
   const draft: FacultyRequestDraft = { laboratory, activityType, scheduleType, schedule, items, notes };
-  const error = step === "activity" ? (!activityType ? "Choose an activity type to continue." : null) : step === "schedule" ? scheduleDraftError(laboratory, scheduleType, schedule) : step === "equipment" ? requestedItemsError(items, notes, laboratory) : step === "review" ? facultyRequestError(draft) : null;
+  const scheduleError = scheduleData.loading ? "Loading official schedule…" : scheduleData.error || scheduleDraftError(laboratory, scheduleType, schedule, scheduleData.blocksFor(schedule), scheduleData.classes);
+  const error = step === "activity" ? (!activityType ? "Choose an activity type to continue." : null) : step === "schedule" ? scheduleError : step === "equipment" ? requestedItemsError(items, notes, laboratory) : step === "review" ? scheduleData.loading ? "Loading official schedule…" : scheduleData.error || facultyRequestError(draft, scheduleData.blocksFor(schedule), scheduleData.classes) : null;
 
   useEffect(() => {
     if (previousStep.current === step) return;
@@ -64,6 +67,9 @@ export default function FacultyServiceRequest() {
     activeStep.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   }, [step]);
   useEffect(() => { if (receipt) receiptHeading.current?.focus(); }, [receipt]);
+  useEffect(() => {
+    if (!scheduleData.loading && scheduleType === "ON_SCHEDULE" && !receipt) setSchedule((current) => createScheduleDraft(laboratory, scheduleType, current.date, current.classId, scheduleData.classes));
+  }, [scheduleData.official]);
 
   function editStep(target: FacultyRequestStep) {
     if (receipt || !steps.includes(target)) return;
@@ -74,17 +80,17 @@ export default function FacultyServiceRequest() {
     if (activityType === value) return;
     setActivityType(value);
     setScheduleType("ON_SCHEDULE");
-    setSchedule(createScheduleDraft(laboratory, "ON_SCHEDULE", schedule.date, schedule.classId));
+    setSchedule(createScheduleDraft(laboratory, "ON_SCHEDULE", schedule.date, schedule.classId, scheduleData.classes));
     setConfirmed(false);
   }
   function selectSchedule(value: RequestScheduleType) {
     if (scheduleType === value) return;
     setScheduleType(value);
-    setSchedule(createScheduleDraft(laboratory, value, schedule.date, schedule.classId));
+    setSchedule(createScheduleDraft(laboratory, value, schedule.date, schedule.classId, scheduleData.classes));
     setConfirmed(false);
   }
   async function submit() {
-    if (submissionLock.current || !confirmed || receipt || facultyRequestError(draft)) return;
+    if (submissionLock.current || !confirmed || receipt || scheduleData.loading || scheduleData.error || facultyRequestError(draft, scheduleData.blocksFor(schedule), scheduleData.classes)) return;
     submissionLock.current = true; setSubmitting(true); setSubmitError("");
     try {
       const response = await fetch("/api/demo/requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) });
@@ -97,7 +103,7 @@ export default function FacultyServiceRequest() {
   function startNew() {
     setSubmitError("");
     setReceipt(null); setConfirmed(false); setLaboratory("circuits"); setActivityType(null); setScheduleType("ON_SCHEDULE");
-    setSchedule(createScheduleDraft("circuits", "ON_SCHEDULE")); setItems([]); setNotes(""); nextItemId.current = 1; setStep("laboratory");
+    setSchedule(createScheduleDraft("circuits", "ON_SCHEDULE", undefined, undefined, scheduleData.classes)); setItems([]); setNotes(""); nextItemId.current = 1; setStep("laboratory");
   }
 
   return <main className="classrep-request-page" aria-labelledby="request-page-title">
@@ -114,7 +120,7 @@ export default function FacultyServiceRequest() {
       <header className="request-laboratory-heading"><h2 ref={heading} id="request-step-title" tabIndex={-1}>{headings[step].title}</h2><p>{headings[step].description}</p></header>
       {step === "laboratory" ? <RequestLaboratoryChoices laboratory={laboratory} onChange={(value) => {
         if (value === laboratory) return;
-        setLaboratory(value); setSchedule(createScheduleDraft(value, scheduleType, schedule.date)); setItems((previous) => itemsForLaboratory(previous, value)); setConfirmed(false);
+        setLaboratory(value); setSchedule(createScheduleDraft(value, scheduleType, schedule.date, undefined, scheduleData.classes)); setItems((previous) => itemsForLaboratory(previous, value)); setConfirmed(false);
       }} /> : step === "activity" ? <fieldset className="request-type-options">
         <legend className="sr-only">Select an activity type</legend>
         {activityChoices.map((choice) => <label key={choice.id} className={`request-type-option ${activityType === choice.id ? "is-selected" : ""}`}>
@@ -131,13 +137,13 @@ export default function FacultyServiceRequest() {
           </label>)}
         </fieldset>
         <aside className="request-approval-route" aria-live="polite"><div><strong>{scheduleType === "OUT_OF_SCHEDULE" ? "Approval Route" : "Reservation Processing"}</strong><p>{scheduleType === "OUT_OF_SCHEDULE" ? "This request will be sent to the Dean for approval." : "No academic approval is required. Wait for your reservation to be processed."}</p></div></aside>
-      </> : step === "schedule" ? <RequestRoomAvailability laboratory={laboratory} scheduleType={scheduleType} draft={schedule} onChange={(value) => { setSchedule(value); setConfirmed(false); }} /> : step === "equipment" ? <RequestEquipmentFields laboratory={laboratory} items={items} notes={notes}
+      </> : step === "schedule" ? <RequestRoomAvailability laboratory={laboratory} scheduleType={scheduleType} draft={schedule} official={scheduleData.official} reservations={scheduleData.reservations} classes={scheduleData.classes} loading={scheduleData.loading} loadError={scheduleData.error} onRefresh={scheduleData.refresh} onChange={(value) => { setSchedule(value); setConfirmed(false); }} /> : step === "equipment" ? <RequestEquipmentFields laboratory={laboratory} items={items} notes={notes}
         onAdd={(catalogId) => { const rowId = nextItemId.current++; setItems((previous) => catalogId ? addCatalogItem(previous, catalogId, laboratory, rowId) : [...previous, { rowId, kind: "Equipment", name: "", quantity: 1 }]); setConfirmed(false); }}
         onChange={(rowId, patch) => { setItems((previous) => previous.map((item) => item.rowId === rowId ? { ...item, ...patch, rowId } : item)); setConfirmed(false); }}
         onRemove={(rowId) => { setItems((previous) => previous.filter((item) => item.rowId !== rowId)); setConfirmed(false); }}
         onNotesChange={(value) => { setNotes(value); setConfirmed(false); }} /> : <>
-          {receipt && <section className="request-demo-receipt" role="status" aria-labelledby="faculty-receipt-title"><h3 ref={receiptHeading} id="faculty-receipt-title" tabIndex={-1}>Demo Request Submitted</h3><p>Reference: <strong>{receipt.reference}</strong></p><p>Demo status: <strong>{receipt.snapshot.status}</strong></p>{receipt.snapshot.recipient && <p>For approval by: <strong>Dean</strong></p>}<p>Saved in the temporary demo request store. No notification was sent and no room was reserved.</p><Link href="/dashboard/faculty/reservation-status">View Request Status</Link></section>}
-          <FacultyRequestReview draft={receipt?.snapshot ?? draft} confirmed={confirmed} locked={Boolean(receipt)} onConfirmedChange={setConfirmed} onEdit={editStep} />
+          {receipt && <section className="request-demo-receipt" role="status" aria-labelledby="faculty-receipt-title"><h3 ref={receiptHeading} id="faculty-receipt-title" tabIndex={-1}>Demo Request Submitted</h3><p>Reference: <strong>{receipt.reference}</strong></p><p>Demo status: <strong>{receipt.snapshot.status}</strong></p>{receipt.snapshot.recipient && <p>For approval by: <strong>Dean</strong></p>}<p>The requested room time is blocked in the demo calendar while this request is pending. No notification was sent.</p><Link href="/dashboard/faculty/reservation-status">View Request Status</Link></section>}
+          <FacultyRequestReview draft={receipt?.snapshot ?? draft} classes={scheduleData.classes} confirmed={confirmed} locked={Boolean(receipt)} onConfirmedChange={setConfirmed} onEdit={editStep} />
           {!receipt && error && <p className="request-review-error" role="status">{error}</p>}
         </>}
       {submitError && <p className="request-review-error" role="alert">{submitError}</p>}

@@ -9,6 +9,7 @@ export const adminNavigation: { slug: string; label: string; icon: AdminIconName
   { slug: "schedule-management", label: "Schedule Management", icon: "calendar" },
   { slug: "daily-tasks", label: "Daily Tasks", icon: "tasks" },
   { slug: "inventory-overview", label: "Inventory Overview", icon: "inventory" },
+  { slug: "reservation-requests", label: "Reservation Requests", icon: "calendar" },
   { slug: "clearance-management", label: "Clearance Management", icon: "shield" },
   { slug: "circuits-logs", label: "Circuit Laboratory Logs", icon: "logs" },
   { slug: "physics-logs", label: "Physics Laboratory Logs", icon: "report" },

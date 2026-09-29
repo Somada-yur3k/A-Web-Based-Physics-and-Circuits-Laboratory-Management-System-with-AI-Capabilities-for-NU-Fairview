@@ -1,0 +1,28 @@
+.headlab-schedule { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; min-width: 0; }
+.headlab-schedule .account-panel { min-width: 0; }
+.headlab-schedule .account-panel-heading > div { min-width: 0; flex-basis: auto; }
+.headlab-schedule .account-panel-heading > .headlab-schedule-actions { flex: 0 0 auto; align-items: center; }
+.headlab-schedule .account-page-heading { margin-bottom: 0; }
+.headlab-schedule-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.headlab-room-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.headlab-room-tabs button { min-height: 42px; padding: 9px 14px; border: 1px solid #cad8ef; border-radius: 8px; background: #fff; color: #173f8c; font: inherit; font-weight: 600; cursor: pointer; }
+.headlab-room-tabs button.is-active { color: #fff; background: #10376f; border-color: #10376f; }
+.headlab-schedule .availability-calendar { min-width: 760px; }
+.headlab-schedule-list h2 { margin: 0 0 14px; font-size: 18px; }
+.headlab-schedule-list h2:not(:first-child) { margin-top: 26px; }
+.headlab-block-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.headlab-block-list article { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 12px; border: 1px solid #dce6f5; border-radius: 8px; }
+.headlab-block-list article > div { display: grid; gap: 4px; min-width: 0; }
+.headlab-block-list article strong, .headlab-block-list article span { overflow-wrap: anywhere; }
+.headlab-block-list article span { color: #6079aa; font-size: 12px; }
+.headlab-reservation-status { padding: 6px 9px; border-radius: 12px; white-space: nowrap; }
+.headlab-reservation-status.approved { background: #dbf3ec; }
+.headlab-reservation-status.pending { background: #e8dfff; }
+.headlab-schedule-note { color: #687eaf; font-size: 12px; }
+.official-block-dialog { width: min(600px, calc(100% - 28px)); max-height: calc(100dvh - 30px); margin: auto; overflow: auto; }
+.official-block-dialog .account-form { padding: 0 24px 24px; }
+.official-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0 0 16px; padding: 0; border: 0; }
+.official-form-grid label { display: grid; gap: 6px; color: #173f8c; font-size: 13px; font-weight: 600; }
+.official-form-grid input, .official-form-grid select { width: 100%; min-width: 0; min-height: 42px; padding: 8px 10px; border: 1px solid #c7d6ed; border-radius: 6px; color: #173f8c; background: #fff; font: inherit; }
+.official-field-wide { grid-column: 1 / -1; }
+@media (max-width: 640px) { .headlab-schedule .account-panel { padding: 16px; } .headlab-schedule .account-panel-heading { flex-direction: column; } .headlab-block-list { grid-template-columns: minmax(0, 1fr); } .official-form-grid { grid-template-columns: 1fr; } .official-field-wide { grid-column: auto; } }
