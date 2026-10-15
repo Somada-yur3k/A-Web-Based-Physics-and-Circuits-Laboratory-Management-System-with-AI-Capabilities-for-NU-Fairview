@@ -9,3 +9,8 @@ next-env.d.ts
 *.log
 .DS_Store
 .vs/
+
+# Local generated files and documentation working copies
+/tmp/
+/output/
+/artifacts/
